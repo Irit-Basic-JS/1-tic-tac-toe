@@ -5,58 +5,89 @@ const EMPTY = ' ';
 const container = document.getElementById('fieldWrapper');
 
 let field = {
-    map: [[' ', ' ', ' '],[' ', ' ', ' '],[' ', ' ', ' ']],
-    isCross: true,
+    map: [],
+    size: 3,
+    isCrossTurn: true,
     changeValue(row, col) {
         if (this.map[row][col] === " ") {
-            if (this.isCross) {
+            if (this.isCrossTurn) {
                 this.map[row][col] = CROSS;
-                this.isCross = false;
+                this.isCrossTurn = false;
             } else {
                 this.map[row][col] = ZERO;
-                this.isCross = true;
+                this.isCrossTurn = true;
             }
         }
     },
     clearField() {
-        for (let row = 0; row < 3; row++){
-            for (let col = 0; col < 3; col++){
+        for (let row = 0; row < this.size; row++) {
+            for (let col = 0; col <  this.size; col++) {
                 this.map[row][col] = EMPTY;
             }
         }
 
-        this.isCross = true;
+        this.isCrossTurn = true;
     },
-
     getWinner() {
-        if (this.map[0][0] === CROSS && this.map[0][0] === this.map[0][1] &&  this.map[0][1] === this.map[0][2] ||
-            this.map[0][0] === CROSS && this.map[0][0] === this.map[1][1] &&  this.map[1][1] === this.map[2][2] ||
-            this.map[0][0] === CROSS && this.map[0][0] === this.map[0][1] && this.map[0][1] === this.map[0][2] ||
-            this.map[0][1] === CROSS && this.map[0][1] === this.map[1][1] && this.map[1][1] === this.map[2][1] ||
-            this.map[0][2] === CROSS && this.map[0][2] === this.map[1][1] && this.map[1][1] === this.map[2][0] ||
-            this.map[0][2] === CROSS && this.map[0][2] === this.map[1][2] && this.map[1][2] === this.map[2][2] ||
-            this.map[1][0] === CROSS && this.map[1][0] === this.map[1][1] && this.map[1][1] === this.map[1][2] ||
-            this.map[2][0] === CROSS && this.map[2][0] === this.map[2][1] && this.map[2][1] === this.map[2][2])
-            return CROSS;
-        else if (this.map[0][0] === ZERO && this.map[0][0] === this.map[0][1] &&  this.map[0][1] === this.map[0][2] ||
-            this.map[0][0] === ZERO && this.map[0][0] === this.map[1][1] &&  this.map[1][1] === this.map[2][2] ||
-            this.map[0][0] === ZERO && this.map[0][0] === this.map[0][1] && this.map[0][1] === this.map[0][2] ||
-            this.map[0][1] === ZERO && this.map[0][1] === this.map[1][1] && this.map[1][1] === this.map[2][1] ||
-            this.map[0][2] === ZERO && this.map[0][2] === this.map[1][1] && this.map[1][1] === this.map[2][0] ||
-            this.map[0][2] === ZERO && this.map[0][2] === this.map[1][2] && this.map[1][2] === this.map[2][2] ||
-            this.map[1][0] === ZERO && this.map[1][0] === this.map[1][1] && this.map[1][1] === this.map[1][2] ||
-            this.map[2][0] === ZERO && this.map[2][0] === this.map[2][1] && this.map[2][1] === this.map[2][2])
-            return ZERO;
-        else{
-            for (let i of this.map){
-                for (let j of i){
-                    if (j === EMPTY)
-                        return undefined;
+        return this.checkRows() || this.checkColumns() || this.checkDiag(1) || this.checkDiag(-1) ||
+            this.IsTie() || undefined;
+    },
+    checkRows() {
+        for(let row = 0; row < this.size; row++) {
+            let firstValue = this.map[row][0];
+            if (firstValue === EMPTY)
+                continue;
+            if (this.map[row].every(x => x === firstValue)) {
+                for (let col = 0; col < this.size; col++) {
+                    renderSymbolInCell(firstValue, row, col, "#db0606");
                 }
+
+                return firstValue;
+            }
+        }
+    },
+    checkColumns() {
+        for (let col = 0; col < this.size; col++) {
+            let firstValue = this.map[0][col];
+            let row = 1;
+            if (firstValue === EMPTY)
+                continue;
+            while (firstValue !== EMPTY && firstValue === this.map[row][col]) {
+                if (row === this.size - 1) {
+                    for (row = 0; row < this.size; row++) {
+                        renderSymbolInCell(firstValue, row, col, "#db0606");
+                    }
+
+                    return firstValue;
+                }
+
+                row++;
+            }
+        }
+    },
+    checkDiag(type = 1) {
+        let firstValue = type === 1 ? this.map[0][0] : this.map[0][this.size - 1];
+        if (firstValue === EMPTY)
+            return;
+        let row = 1;
+        let col = type === 1 ? 1 : this.size - 2;
+        while (firstValue === this.map[row][col] && row < this.size) {
+            if (row === this.size - 1) {
+                row = 0;
+                for (col = type === 1 ? 0 : this.size - 1; row < this.size; col = col + type, row++) {
+                    renderSymbolInCell(firstValue, row, col, "#db0606");
+                }
+
+                return firstValue;
             }
 
-            return "Ничья";
+            col = col + type;
+            row++;
         }
+    },
+    IsTie() {
+        if (this.map.every(line => line.every(x => x !== EMPTY)))
+            return "Ничья";
     }
 };
 
@@ -64,7 +95,17 @@ startGame();
 addResetListener();
 
 function startGame () {
-    renderGrid(3);
+    let size = 3;
+    field.size = size;
+    renderGrid(size);
+    for (let i = 0; i < size; i++){
+        field.map.push([]);
+        for (let j = 0; j < size; j++){
+            field.map[i].push(EMPTY);
+        }
+    }
+    console.log(field.map);
+
 }
 
 function renderGrid (dimension) {
@@ -83,28 +124,18 @@ function renderGrid (dimension) {
 }
 
 function cellClickHandler (row, col) {
-    // Пиши код тут
+    field.changeValue(row,col);
+    renderSymbolInCell(field.map[row][col], row, col);
     let winner = field.getWinner();
     if (winner) {
-        alert(winner);
-        if (winner !== "Ничья") {
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (field.map[i][j] === winner)
-                        renderSymbolInCell(winner, i, j, "#db0606");
-                }
-            }
-        }
-
+        if (winner === CROSS || winner === ZERO)
+            alert(`Победил ${winner}!`);
+        else
+            alert(winner);
         return;
     }
 
     console.log(`Clicked on cell: ${row}, ${col}`);
-    field.changeValue(row,col);
-    renderSymbolInCell(field.map[row][col], row, col);
-    /* Пользоваться методом для размещения символа в клетке так:
-        renderSymbolInCell(ZERO, row, col);
-     */
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
@@ -126,19 +157,10 @@ function addResetListener () {
 
 function resetClickHandler () {
     field.clearField();
-
-    for (let row = 0; row < 3; row++){
-        for (let col = 0; col < 3; col++){
-            renderSymbolInCell(field.map[row][col], row, col);
-        }
-    }
-
+    startGame();
     console.log('reset!');
 }
 
-
-/* Test Function */
-/* Победа первого игрока */
 function testWin () {
     clickOnCell(0, 2);
     clickOnCell(0, 0);
@@ -149,7 +171,6 @@ function testWin () {
     clickOnCell(2, 1);
 }
 
-/* Ничья */
 function testDraw () {
     clickOnCell(2, 0);
     clickOnCell(1, 0);
