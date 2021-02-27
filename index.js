@@ -1,6 +1,8 @@
 const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
+let currentSymbol = ZERO;
+let isEnd = false
 
 const container = document.getElementById('fieldWrapper');
 
@@ -19,7 +21,7 @@ function renderGrid (dimension) {
         for (let j = 0; j < dimension; j++) {
             const cell = document.createElement('td');
             cell.textContent = EMPTY;
-            cell.addEventListener('click', () => cellClickHandler(i, j));
+            cell.addEventListener('click', () => cellClickHandler(i, j), {once: true});
             row.appendChild(cell);
         }
         container.appendChild(row);
@@ -27,13 +29,62 @@ function renderGrid (dimension) {
 }
 
 function cellClickHandler (row, col) {
-    // Пиши код тут
+    if (isEnd) return
+    currentSymbol === CROSS ? currentSymbol = ZERO : currentSymbol = CROSS
+    renderSymbolInCell(currentSymbol, row, col)
+    checkEnd()
     console.log(`Clicked on cell: ${row}, ${col}`);
 
 
     /* Пользоваться методом для размещения символа в клетке так:
         renderSymbolInCell(ZERO, row, col);
      */
+}
+
+function checkEnd () {
+    const field = document.getElementsByTagName('td')
+    console.log(field)
+    let combinations = [
+        [0,1,2],
+        [3,4,5],
+        [6,7,8],
+        [0,3,6],
+        [1,4,7],
+        [2,5,8],
+        [0,4,8],
+        [2,4,6]
+    ]
+    for (let i = 0; i < 8; i++) {
+        if (
+          field[[combinations[i][0]]].innerHTML === CROSS &&
+          field[[combinations[i][1]]].innerHTML === CROSS &&
+          field[[combinations[i][2]]].innerHTML === CROSS
+        ) {
+            field[[combinations[i][0]]].bgColor='red'
+            field[[combinations[i][1]]].bgColor='red'
+            field[[combinations[i][2]]].bgColor='red'
+            alert('Победили крестики')
+            isEnd = true
+            return
+        } else if (
+          field[[combinations[i][0]]].innerHTML === ZERO &&
+          field[[combinations[i][1]]].innerHTML === ZERO &&
+          field[[combinations[i][2]]].innerHTML === ZERO
+        ) {
+            field[[combinations[i][0]]].bgColor='red'
+            field[[combinations[i][1]]].bgColor='red'
+            field[[combinations[i][2]]].bgColor='red'
+            alert('Победили нолики')
+            isEnd = true
+            return
+        }
+    }
+    for (let i = 0; i < 9; i++) {
+        if (field[i].innerHTML === EMPTY) {
+            return
+        }
+    }
+    alert('Победила дружба')
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
@@ -55,6 +106,8 @@ function addResetListener () {
 
 function resetClickHandler () {
     console.log('reset!');
+    isEnd = false
+    startGame()
 }
 
 
