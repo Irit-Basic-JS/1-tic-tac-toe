@@ -4,10 +4,75 @@ const EMPTY = ' ';
 
 const container = document.getElementById('fieldWrapper');
 
+class Field {
+    arr = [];
+    gameEnded = false;
+    whoWon = 0;
+    markCount = 0;
+
+    constructor(){
+        for (let i = 0; i < 3; i++) {
+            this.arr[i] = [];
+            for (let j = 0; j < 3; j++)
+                this.arr[i][j] = EMPTY;
+        }
+    }
+
+    add(mark, i, j){
+        this.arr[i][j] = mark;
+        this.markCount++;
+        if (this.checkWin(mark)){
+            this.gameEnded = true;
+            if (mark === CROSS){
+                this.whoWon = 1;
+            }
+            else {
+                this.whoWon = 2;
+            }
+            return;
+        }
+        if (this.markCount === 9){
+            this.gameEnded = true;
+        }
+    }
+
+    checkWin(mark){
+        if (this.arr[0].every(e => e === mark) 
+        || this.arr[1].every(e => e === mark)
+        || this.arr[2].every(e => e === mark)){
+            return true;
+        }
+            
+        for (let i = 0; i < 3; i++){
+            let win = true;
+            for (let j = 0; j < 3; j++){
+                if (this.arr[j][i] !== mark){
+                    win = false;
+                    break;
+                }
+            }
+            if (win){
+                return true;
+            }
+        }
+
+        return ((this.arr[0][0] === mark
+            && this.arr[1][1] === mark
+            && this.arr[2][2] === mark)
+            || (this.arr[2][0] === mark
+                && this.arr[1][1] === mark
+                && this.arr[0][2] === mark));
+    }
+}
+
+let field = new Field();
+let isCross = true;
 startGame();
 addResetListener();
 
 function startGame () {
+    field = new Field();
+    isCross = true;
     renderGrid(3);
 }
 
@@ -27,13 +92,37 @@ function renderGrid (dimension) {
 }
 
 function cellClickHandler (row, col) {
-    // Пиши код тут
+    if (field.gameEnded){
+        return;
+    }
+
+    
+
+    if (findCell(row, col).textContent === EMPTY){
+        if (isCross){
+            renderSymbolInCell(CROSS, row, col);
+            field.add(CROSS, row, col);
+        }
+        else {
+            renderSymbolInCell(ZERO, row, col);
+            field.add(ZERO, row, col);
+        }
+        isCross = !isCross;
+    }
     console.log(`Clicked on cell: ${row}, ${col}`);
 
-
-    /* Пользоваться методом для размещения символа в клетке так:
-        renderSymbolInCell(ZERO, row, col);
-     */
+    if (field.gameEnded){
+        findCell(row, col).style.color = "red";
+        if (field.whoWon === 1){
+            alert("CROSS");
+        }
+        else if (field.whoWon === 2){
+            alert("ZERO");
+        }
+        else {
+            alert("Победила дружба");
+        }
+    }
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
@@ -53,8 +142,9 @@ function addResetListener () {
     resetButton.addEventListener('click', resetClickHandler);
 }
 
-function resetClickHandler () {
+function resetClickHandler () {  
     console.log('reset!');
+    startGame();
 }
 
 
