@@ -5,6 +5,7 @@ const EMPTY = ' ';
 let currentSymbol = CROSS;
 let countEMPTY = 9;
 let field = [new Array(3), new Array(3), new Array(3)];
+let winner = false;
 
 const container = document.getElementById('fieldWrapper');
 
@@ -32,7 +33,7 @@ function renderGrid (dimension) {
 
 function cellClickHandler (row, col) {
     // Пиши код тут
-
+if (!winner) {
     if (field[row][col] === undefined) {
         if (currentSymbol === CROSS) {
             renderSymbolInCell(CROSS, row, col);
@@ -47,9 +48,15 @@ function cellClickHandler (row, col) {
             countEMPTY -= 1;
         }
     }
-
-    if (winnerCheck(field) === 'Победили крестики') alert('Победили крестики');
-    else if (winnerCheck(field) === 'Победили нолики') alert('Победили нолики');
+}
+    if (winnerCheck(field) === 'Победили крестики') {
+        alert('Победили крестики');
+        winner = true;
+    }
+    else if (winnerCheck(field) === 'Победили нолики') {
+        alert('Победили нолики');
+        winner = true;
+    }
     else if (countEMPTY === 0) alert('Победила дружба');
 
 
