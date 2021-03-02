@@ -8,6 +8,7 @@ let field = {
     map: [],
     size: 3,
     isCrossTurn: true,
+    winCombination:[],
     changeValue(row, col) {
         if (this.map[row][col] === " ") {
             if (this.isCrossTurn) {
@@ -20,12 +21,8 @@ let field = {
         }
     },
     clearField() {
-        for (let row = 0; row < this.size; row++) {
-            for (let col = 0; col <  this.size; col++) {
-                this.map[row][col] = EMPTY;
-            }
-        }
-
+        this.map = [];
+        this.winCombination = [];
         this.isCrossTurn = true;
     },
     getWinner() {
@@ -39,7 +36,7 @@ let field = {
                 continue;
             if (this.map[row].every(x => x === firstValue)) {
                 for (let col = 0; col < this.size; col++) {
-                    renderSymbolInCell(firstValue, row, col, "#db0606");
+                    this.winCombination.push([row,col]);
                 }
 
                 return firstValue;
@@ -55,7 +52,7 @@ let field = {
             while (firstValue !== EMPTY && firstValue === this.map[row][col]) {
                 if (row === this.size - 1) {
                     for (row = 0; row < this.size; row++) {
-                        renderSymbolInCell(firstValue, row, col, "#db0606");
+                        this.winCombination.push([row,col]);
                     }
 
                     return firstValue;
@@ -75,7 +72,8 @@ let field = {
             if (row === this.size - 1) {
                 row = 0;
                 for (col = type === 1 ? 0 : this.size - 1; row < this.size; col = col + type, row++) {
-                    renderSymbolInCell(firstValue, row, col, "#db0606");
+                    this.winCombination.push([row,col]);
+                    //renderSymbolInCell(firstValue, row, col, "#db0606");
                 }
 
                 return firstValue;
@@ -119,22 +117,31 @@ function renderGrid (dimension) {
             cell.addEventListener('click', () => cellClickHandler(i, j));
             row.appendChild(cell);
         }
+
         container.appendChild(row);
     }
 }
 
 function cellClickHandler (row, col) {
-    field.changeValue(row,col);
-    renderSymbolInCell(field.map[row][col], row, col);
+    console.log(field.map);
     let winner = field.getWinner();
+    console.log(this.winCombination);
     if (winner) {
-        if (winner === CROSS || winner === ZERO)
+        if (winner === CROSS || winner === ZERO) {
+            for (let i of field.winCombination){
+                renderSymbolInCell(winner, i[0], i[1], "#db0606");
+            }
+
             alert(`Победил ${winner}!`);
-        else
+        } else {
             alert(winner);
+        }
+
         return;
     }
 
+    field.changeValue(row,col);
+    renderSymbolInCell(field.map[row][col], row, col);
     console.log(`Clicked on cell: ${row}, ${col}`);
 }
 
