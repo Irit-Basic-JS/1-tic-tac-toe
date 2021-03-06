@@ -7,13 +7,16 @@ const container = document.getElementById('fieldWrapper');
 class Field {
     arr = [];
     gameEnded = false;
+    winCombo = []
     whoWon = 0;
     markCount = 0;
+    dimension = 3;
 
-    constructor(){
-        for (let i = 0; i < 3; i++) {
+    constructor(dimension){
+        this.dimension = dimension;
+        for (let i = 0; i < dimension; i++) {
             this.arr[i] = [];
-            for (let j = 0; j < 3; j++)
+            for (let j = 0; j < dimension; j++)
                 this.arr[i][j] = EMPTY;
         }
     }
@@ -21,7 +24,7 @@ class Field {
     add(mark, i, j){
         this.arr[i][j] = mark;
         this.markCount++;
-        if (this.checkWin(mark)){
+        if (this.checkWin(mark, i, j)){
             this.gameEnded = true;
             if (mark === CROSS){
                 this.whoWon = 1;
@@ -31,49 +34,78 @@ class Field {
             }
             return;
         }
-        if (this.markCount === 9){
+        if (this.markCount === this.dimension * this.dimension){
             this.gameEnded = true;
         }
     }
 
-    checkWin(mark){
-        if (this.arr[0].every(e => e === mark) 
-        || this.arr[1].every(e => e === mark)
-        || this.arr[2].every(e => e === mark)){
-            return true;
-        }
-            
-        for (let i = 0; i < 3; i++){
-            let win = true;
-            for (let j = 0; j < 3; j++){
-                if (this.arr[j][i] !== mark){
-                    win = false;
-                    break;
+    checkWin(mark, row, col){
+        for (let i = -1; i <= 1; i++)
+        {
+            for (let j = -1; j <= 1; j++)
+            {
+                if (i === 0 && j === 0){
+                    continue;
+                }
+                let comb = [[row, col]];
+                for (let n = 1; n < 3; n++)
+                {
+                    let nextRow = row + n * i;
+                    let nextCol = col + n * j;
+                    if (nextRow >= 0 && nextCol >= 0 
+                        && nextRow < this.dimension && nextCol < this.dimension
+                        && this.arr[nextRow][nextCol] === mark){
+                            comb.push([nextRow, nextCol]);
+                        }
+                }
+                
+                if (comb.length === 3){
+                    this.winCombo = comb;
+                    return true;
                 }
             }
-            if (win){
-                return true;
-            }
         }
 
-        return ((this.arr[0][0] === mark
-            && this.arr[1][1] === mark
-            && this.arr[2][2] === mark)
-            || (this.arr[2][0] === mark
-                && this.arr[1][1] === mark
-                && this.arr[0][2] === mark));
-    }
+        for (let i = -1; i <= 1; i++)
+        {
+            for (let j = -1; j <= 1; j++)
+            {
+                if (i === 0 && j === 0){
+                    continue;
+                }
+                let comb = [[row, col]];
+                for (let n = -1; n <= 1; n += 2)
+                {
+                    let nextRow = row + n * i;
+                    let nextCol = col + n * j;
+                    if (nextRow >= 0 && nextCol >= 0 
+                        && nextRow < this.dimension && nextCol < this.dimension
+                        && this.arr[nextRow][nextCol] === mark){
+                            comb.push([nextRow, nextCol]);
+                        }
+                }
+                
+                if (comb.length === 3){
+                    this.winCombo = comb;
+                    return true;
+                }
+            }
+        }  
+
+        return false;
+    }             
 }
 
-let field = new Field();
+let field = new Field(3);
 let isCross = true;
 startGame();
 addResetListener();
 
 function startGame () {
-    field = new Field();
+    size = prompt("Введите размер поля");
+    field = new Field(size);
     isCross = true;
-    renderGrid(3);
+    renderGrid(size);
 }
 
 function renderGrid (dimension) {
@@ -91,12 +123,10 @@ function renderGrid (dimension) {
     }
 }
 
-function cellClickHandler (row, col) {
+function cellClickHandler (row, col, isBot = false) {
     if (field.gameEnded){
         return;
     }
-
-    
 
     if (findCell(row, col).textContent === EMPTY){
         if (isCross){
@@ -112,7 +142,10 @@ function cellClickHandler (row, col) {
     console.log(`Clicked on cell: ${row}, ${col}`);
 
     if (field.gameEnded){
-        findCell(row, col).style.color = "red";
+        for (let cell of field.winCombo){
+            findCell(cell[0], cell[1]).style.color = "red";
+        }
+
         if (field.whoWon === 1){
             alert("CROSS");
         }
@@ -122,7 +155,20 @@ function cellClickHandler (row, col) {
         else {
             alert("Победила дружба");
         }
+
+        console.log(field.winCombo);
     }
+
+    if (field.dimension * field.dimension / 2 <= field.markCount) {
+        enlargeMap();
+    }
+
+    if (isBot){
+        return;
+    }
+
+    let botTurn = getNextCell();
+    cellClickHandler(botTurn[0], botTurn[1], true);
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
@@ -147,221 +193,112 @@ function resetClickHandler () {
     startGame();
 }
 
-
-/* Test Function */
-/* Победа первого игрока */
-function testWin () {
-    clickOnCell(0, 2);
-    clickOnCell(0, 0);
-    clickOnCell(2, 0);
-    clickOnCell(1, 1);
-    clickOnCell(2, 2);
-    clickOnCell(1, 2);
-    clickOnCell(2, 1);
-}
-
-/* Ничья */
-function testDraw () {
-    clickOnCell(2, 0);
-    clickOnCell(1, 0);
-    clickOnCell(1, 1);
-    clickOnCell(0, 0);
-    clickOnCell(1, 2);
-    clickOnCell(1, 2);
-    clickOnCell(0, 2);
-    clickOnCell(0, 1);
-    clickOnCell(2, 1);
-    clickOnCell(2, 2);
-}
-
 function clickOnCell (row, col) {
     findCell(row, col).click();
 }
 
-// const CROSS = 'X';
-// const ZERO = 'O'; 
-// const EMPTY = ' ';
-// let symbolNumber = 1;
-// let map;
-// let dimension = 3;
-// let gameOver;
-// let count = 0;
-// const container = document.getElementById('fieldWrapper');
+function enlargeMap() {
+        field.dimension++; 
+        for (let row of field.arr){
+            row.push(EMPTY);
+        }
+        field.arr.push([]);
+        for (let i = 0; i <= field.dimension; i++){
+            field.arr[field.dimension - 1].push(EMPTY);
+        }
 
-// startGame();
-// addResetListener();
+        let n = field.dimension - 1;
 
-// function startGame () {
-//     dimension = prompt("Введите размер поля");
-//     renderGrid();
-//     count = 0;
-// }
+        for (let i = 0; i < container.childNodes.length; i++){
+            const row = container.childNodes[i];
+            const cell = document.createElement('td');
+            cell.textContent = EMPTY;
+            cell.addEventListener('click', () => cellClickHandler(i, n));
+            row.appendChild(cell);
+        }
 
-// function renderGrid () {
-//     container.innerHTML = '';
-//     map = new Map();
-//     gameOver = false;
-//     symbolNumber = 1;
-//     for (let i = 0; i < dimension; i++) {
-//         const row = document.createElement('tr');
-//         for (let j = 0; j < dimension; j++) {
-//             const cell = document.createElement('td');
-//             cell.textContent = EMPTY;
-//             cell.addEventListener('click', () => cellClickHandler(i, j));
-//             row.appendChild(cell);
-//         }
-//         container.appendChild(row);
-//     }
-// }
+        const row = document.createElement('tr');
+        for (let j = 0; j < field.dimension; j++) {
+            const cell = document.createElement('td');
+            cell.textContent = EMPTY;
+            cell.addEventListener('click', () => cellClickHandler(n, j));
+            row.appendChild(cell);
+        }
+        container.appendChild(row);
+}
 
-// function cellClickHandler (row, col) {
-//     if (!(map.has(`${row}${col}`) || gameOver)) {
-//         symbolNumber = (symbolNumber + 1) % 2;
-//         let symbol = symbolNumber === 0 ? CROSS : ZERO;
-//         map.set(`${row}${col}`, symbol);
-//         count++;
-//         renderSymbolInCell(symbol, row, col);
-//         gameOver = map.size === dimension ** 2;
-        
-//         if (checkWin(symbol, row, col)) {
-//             alert(`${symbol} WIN`);
-//             gameOver = true;
-//         } else if (gameOver){
-//             alert("Победила дружба");
-//         }
+function getNextCell(){
+    let emptyCells = [];
+    for (let i = 0; i < field.dimension; i++){
+        for (let j = 0; j < field.dimension; j++){
+            if (field.arr[i][j] === EMPTY){
+                emptyCells.push([i, j]);
+            }
+        }
+    }  
 
-//         console.log(`Clicked on cell: ${row}, ${col}`);
-//         //cellClickHandler(getRandomInt(dimension - 1), getRandomInt(dimension - 1));
-//         if (dimension * dimension / 2 <= count) {
-//             enlargeMap();
-//         }
-//     }
-// }
+    for (let i = 0; i < emptyCells.length; i++){
+        let combo = [];
+        if (checkWinTurn(ZERO, emptyCells[i][0], emptyCells[i][1], combo)){
+            return emptyCells[i];
+        }
+    }
 
-// function checkWin (symbol, row, col) {
-//     for (let i = 0; i < dimension; i++) {
-//         if (map.get(`${i}${col}`) !== symbol) break;
-//         if (i === dimension - 1) {
-//             for (let x = 0; x < dimension; x++) renderSymbolInCell(symbol, x, col, '#FF0000');
-//             return true;
-//         }
-//     }
-//     for (let j = 0; j < dimension; j++) {
-//         if (map.get(`${row}${j}`) !== symbol) break;
-//         if (j === dimension - 1) {
-//             for (let x = 0; x < dimension; x++) renderSymbolInCell(symbol, row, x, '#FF0000');
-//             return true;
-//         }
-//     }
-//     for (let ij = 0; ij < dimension; ij++) {
-//         if (map.get(`${ij}${ij}`) !== symbol) break;
-//         if (ij === dimension - 1) {
-//             for (let x = 0; x < dimension; x++) renderSymbolInCell(symbol, x, x, '#FF0000');
-//             return true;
-//         }
-//     }
-//     for (let ij = 0; ij < dimension; ij++) {
-//         if (map.get(`${dimension - ij - 1}${ij}`) !== symbol) break;
-//         if (ij === dimension - 1) {
-//             for (let x = 0; x < dimension; x++) renderSymbolInCell(symbol, dimension - 1 - x, x, '#FF0000');
-//             return true;
-//         }
-//     }
-//     return false;
-// }
+    return emptyCells[Math.floor(Math.random() * Math.floor(emptyCells.length - 1))];
+}
 
-// function renderSymbolInCell (symbol, row, col, color = '#000000') {
-//     const targetCell = findCell(row, col);
+function checkWinTurn(mark, row, col, winCombo){
+    for (let i = -1; i <= 1; i++)
+    {
+        for (let j = -1; j <= 1; j++)
+        {
+            if (i === 0 && j === 0){
+                continue;
+            }
+            let comb = [[row, col]];
+            for (let n = 1; n < 3; n++)
+            {
+                let nextRow = row + n * i;
+                let nextCol = col + n * j;
+                if (nextRow >= 0 && nextCol >= 0 
+                    && nextRow < field.dimension && nextCol < field.dimension
+                    && field.arr[nextRow][nextCol] === mark){
+                        comb.push([nextRow, nextCol]);
+                    }
+            }
+            
+            if (comb.length === 3){
+                winCombo = comb;
+                return true;
+            }
+        }
+    }
 
-//     targetCell.textContent = symbol;
-//     targetCell.style.color = color;
-// }
+    for (let i = -1; i <= 1; i++)
+    {
+        for (let j = -1; j <= 1; j++)
+        {
+            if (i === 0 && j === 0){
+                continue;
+            }
+            let comb = [[row, col]];
+            for (let n = -1; n <= 1; n += 2)
+            {
+                let nextRow = row + n * i;
+                let nextCol = col + n * j;
+                if (nextRow >= 0 && nextCol >= 0 
+                    && nextRow < field.dimension && nextCol < field.dimension
+                    && field.arr[nextRow][nextCol] === mark){
+                        comb.push([nextRow, nextCol]);
+                    }
+            }
+            
+            if (comb.length === 3){
+                winCombo = comb;
+                return true;
+            }
+        }
+    }  
 
-// function findCell (row, col) {
-//     const targetRow = container.querySelectorAll('tr')[row];
-//     return targetRow.querySelectorAll('td')[col];
-// }
-
-// function addResetListener () {
-//     const resetButton = document.getElementById('reset');
-//     resetButton.addEventListener('click', resetClickHandler);
-// }
-
-// function resetClickHandler () {
-//     startGame();
-//     console.log('reset!');
-// }
-
-
-// /* Test Function */
-// /* Победа первого игрока */
-// function testWin () {
-//     clickOnCell(0, 2);
-//     clickOnCell(0, 0);
-//     clickOnCell(2, 0);
-//     clickOnCell(1, 1);
-//     clickOnCell(2, 2);
-//     clickOnCell(1, 2);
-//     clickOnCell(2, 1);
-// }
-
-// /* Ничья */
-// function testDraw () {
-//     clickOnCell(2, 0);
-//     clickOnCell(1, 0);
-//     clickOnCell(1, 1);
-//     clickOnCell(0, 0);
-//     clickOnCell(1, 2);
-//     clickOnCell(1, 2);
-//     clickOnCell(0, 2);
-//     clickOnCell(0, 1);
-//     clickOnCell(2, 1);
-//     clickOnCell(2, 2);
-// }
-
-// function clickOnCell (row, col) {
-//     findCell(row, col).click();
-// }
-
-// function enlargeMap() {
-//     //for (let i = 0; i <= dimension; i++) {
-//     //    map.set(`${i}${dimension}`, EMPTY);
-//     //    map.set(`${dimension}${i}`, EMPTY);
-//     //}
-//     dimension++;
-
-//     let n = 0;
-
-//     for (const row of container.childNodes){
-//         const cell = document.createElement('td');
-//             cell.textContent = EMPTY;
-//             cell.addEventListener('click', () => cellClickHandler(dimension, n));
-//             row.appendChild(cell);
-//             n++;
-//     }
-
-//     const row = document.createElement('tr');
-//     for (let j = 0; j <= dimension; j++) {
-//         const cell = document.createElement('td');
-//         cell.textContent = EMPTY;
-//         cell.addEventListener('click', () => cellClickHandler(dimension, j));
-//         row.appendChild(cell);
-//     }
-//     container.appendChild(row);
-
-
-//     // for (let i = 0; i < dimension; i++) {
-//     //     const row = document.createElement('tr');
-//     //     for (let j = 0; j < dimension; j++) {
-//     //         const cell = document.createElement('td');
-//     //         cell.textContent = EMPTY;
-//     //         //cell.addEventListener('click', () => cellClickHandler(i, j));
-//     //         row.appendChild(cell);
-//     //     }
-//     //     container.appendChild(row);
-//     // }
-// }
-
-// function getRandomInt(max) {
-//     return Math.floor(Math.random() * Math.floor(max));
-//   }
+    return false;
+}
