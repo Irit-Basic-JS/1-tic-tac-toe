@@ -8,6 +8,7 @@ const container = document.getElementById('fieldWrapper');
 let fieldRows, fieldColumns;
 let field, hasWinner, winner, stepCount, maxSteps;
 let isUsingAI, isSimpleAI;
+let isInfinityGame;
 
 startGame();
 addResetListener();
@@ -18,10 +19,30 @@ function startGame () {
     isUsingAI = confirm("Use AI?");
     if (isUsingAI)
         isSimpleAI = confirm("Use simple AI?");
+    isInfinityGame = confirm("Play infinity game?");
 
     InitializeDependencies(rows, columns);
 
     renderGrid(fieldRows, fieldColumns);
+}
+
+function extendGameField() {
+    console.log("before extending: " + field);
+
+    fieldRows += 2;
+    fieldColumns += 2;
+    maxSteps = fieldRows * fieldColumns;
+
+    for (let rowArr of field) {
+        rowArr.unshift(undefined);
+        rowArr.push(undefined);
+    }
+    field.unshift(new Array(fieldColumns));
+    field.push(new Array(fieldColumns));
+
+    renderGrid(fieldRows, fieldColumns, true);
+
+    console.log("before extending: " + field);
 }
 
 function InitializeDependencies(rows, columns)
@@ -54,14 +75,20 @@ function createField(rows, columns) {
     return array;
 }
 
-function renderGrid (rows, columns) {
+function renderGrid (rows, columns, isExtending = false) {
     container.innerHTML = '';
 
     for (let i = 0; i < rows; i++) {
         const row = document.createElement('tr');
         for (let j = 0; j < columns; j++) {
             const cell = document.createElement('td');
-            cell.textContent = EMPTY;
+            if (!isExtending) {
+                cell.textContent = EMPTY;
+            }
+            else if (!isSellEmpty(i, j)) {
+                cell.textContent = field[i][j];
+            }
+
             cell.addEventListener('click', () => cellClickHandler(i, j));
             row.appendChild(cell);
         }
@@ -102,6 +129,10 @@ function cellClickHandler (row, col) {
         isSimpleAI
             ? playSimpleAI(ZERO)
             : playDifficultAI(ZERO);
+    }
+
+    if (!hasWinner && isInfinityGame && stepCount >= maxSteps * 2 / 3) {
+        extendGameField();
     }
 }
 
