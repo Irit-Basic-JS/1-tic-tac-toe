@@ -3,7 +3,8 @@ const ZERO = 'O';
 const EMPTY = ' ';
 
 const container = document.getElementById('fieldWrapper');
-let field = new GameField(3);
+const size = 3;
+let field = new GameField(size);
 
 startGame();
 addResetListener();
@@ -12,32 +13,28 @@ function GameField(size) {
 	this.count = 0;
 	this.size = size;
 	this.winner = null;
+
 	this.grid = [];
-
-
-	this.fillGrid = function () {
-		for (let i = 0; i < this.size; i++) {
-			this.grid.push([]);
-			for (let j = 0; j < this.size; j++) {
-				this.grid[i].push(null);
-			}
+	for (let i = 0; i < this.size; i++) {
+		this.grid.push([]);
+		for ( let j = 0; j < this.size; j++) {
+			this.grid[i][j] = null;
 		}
 	}
 
-	this.fillGrid();
-
 	this.add = function (symbol, row, col) {
-		if (!(this.grid[row][col] === null)) return;
+		if (this.grid[row][col] !== null) return;
 		this.grid[row][col] = symbol;
-		this.updateWinner(row, col);
 		this.count++;
+		this.updateWinner(row, col);
 	}
 
 	this.gameIsEnd = function () {
-		return (this.winner || this.count === (this.size * this.size))
+		return (this.winner || this.count === this.size * this.size);
 	}
 
 	this.updateWinner = function (row, col) {
+		if (this.count < 5) return;
 		let counters = [0, 0, 0, 0];
 		for (let i = 0; i < this.size; i++) {
 			const coordinates = [this.grid[i][col], this.grid[row][i], this.grid[i][i], this.grid[i][this.size - 1 - i]]
@@ -83,13 +80,14 @@ function GameField(size) {
 }
 
 function cellClickHandler(row, col) {
-	console.log(field.count);
 	const symbol = (field.count % 2 === 0) ? CROSS : ZERO;
 
 	if (!field.gameIsEnd()) {
 		field.add(symbol, row, col);
 		renderSymbolInCell(symbol, row, col);
 	}
+
+	console.log(field.grid);
 
 	if (field.gameIsEnd()) {
 		if (field.winner === ZERO) {
@@ -109,7 +107,7 @@ function cellClickHandler(row, col) {
 }
 
 function resetClickHandler() {
-	field = new GameField(3);
+	field = new GameField(size);
 	for (let i = 0; i < field.size; i++) {
 		for (let j = 0; j < field.size; j++) {
 			renderSymbolInCell(EMPTY, i, j);
@@ -147,7 +145,7 @@ function testDraw() {
 }
 
 function startGame() {
-	renderGrid(3);
+	renderGrid(size);
 }
 
 function renderGrid(dimension) {
