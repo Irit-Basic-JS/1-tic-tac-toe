@@ -1,6 +1,7 @@
 const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
+let i = 0;
 
 const container = document.getElementById('fieldWrapper');
 
@@ -26,14 +27,83 @@ function renderGrid (dimension) {
     }
 }
 
-function cellClickHandler (row, col) {
-    // Пиши код тут
+function cellClickHandler (row, col,) {
+    const targetInCell = findCell(row, col);
+
     console.log(`Clicked on cell: ${row}, ${col}`);
+    if (i == 8){
+        i % 2 == 0 ? renderSymbolInCell(CROSS, row, col) : renderSymbolInCell(ZERO, row, col);
+        alert("Победила дружба");
+    }   else{
+            if (targetInCell.textContent == EMPTY){
+                if (checkWinner())
+                    return;
+                i % 2 == 0 ? renderSymbolInCell(CROSS, row, col) : renderSymbolInCell(ZERO, row, col);
+                i += 1;
+                checkWinner();                
+            }
+    } 
+}
 
-
-    /* Пользоваться методом для размещения символа в клетке так:
-        renderSymbolInCell(ZERO, row, col);
-     */
+function checkWinner () {
+    let arrG = [];
+    let arrV = [];
+    for (let a = 0; a < 3; a++){
+        for (let b = 0; b < 3; b++){
+            const targetG = findCell(a, b);
+            const targetV = findCell(b, a);
+            arrG.push(targetG.textContent);
+            arrV.push(targetV.textContent);
+        }
+    }
+    for (let n = 0; n <= 6; n += 3){
+        if (arrG[n] == arrG[n + 1] && arrG[n] == arrG[n + 2] && arrG[n] != EMPTY){
+            if (n == 0)
+                for (a = 0; a < 3; a++){
+                    let target = findCell(0, a);
+                    target.style.color = "red";}
+            if (n == 3)
+                for (a = 0; a < 3; a++){
+                    let target = findCell(1, a);
+                    target.style.color = "red";}
+            if (n == 6)
+                for (a = 0; a < 3; a++){
+                    let target = findCell(2, a);
+                    target.style.color = "red";}                          
+            alert(`Победили ${arrG[n]}`);
+            return 1;
+        }
+        if (arrV[n] == arrV[n + 1] && arrV[n] == arrV[n + 2] && arrV[n] != EMPTY){
+            if (n == 0)
+                for (a = 0; a < 3; a++){
+                    let target = findCell(a, 0);
+                    target.style.color = "red";}
+            if (n == 3)
+                for (a = 0; a < 3; a++){
+                    let target = findCell(a, 1);
+                    target.style.color = "red";}
+            if (n == 6)
+                for (a = 0; a < 3; a++){
+                    let target = findCell(a, 2);
+                    target.style.color = "red";}
+            alert(`Победили ${arrV[n]}`);
+            return 1;
+        }
+    }
+        if (arrG[0] == arrG[4] && arrG[0] == arrG[8] && arrG[0] != EMPTY){
+            for (a = 0; a <= 2; a++){
+                let target = findCell(a, a);
+                target.style.color = "red";}
+            alert(`Победили ${arrV[0]}`);
+        return 1;}
+        if (arrG[2] == arrG[4] && arrG[2] == arrG[6] && arrG[2] != EMPTY){
+            b = 2;
+            for (a = 0; a < 3; a++){
+                let target = findCell(a, b);
+                target.style.color = "red";
+                b--;}
+            alert(`Победили ${arrV[2]}`);
+        return 1;}
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
@@ -54,6 +124,14 @@ function addResetListener () {
 }
 
 function resetClickHandler () {
+    let arr = [];
+    for (let a = 0; a < 3; a++){
+        for (let b = 0; b < 3; b++){
+            let target = findCell(a, b);
+            target.textContent = EMPTY;
+            i = 0;
+        }
+    }
     console.log('reset!');
 }
 
