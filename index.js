@@ -3,7 +3,7 @@ const ZERO = 'O';
 const EMPTY = ' ';
 
 const container = document.getElementById('fieldWrapper');
-const size = 3;
+const size = +prompt("Введите размер поля");
 let field = new GameField(size);
 
 startGame();
@@ -13,11 +13,12 @@ function GameField(size) {
 	this.count = 0;
 	this.size = size;
 	this.winner = null;
+	this.winningCombination = [];
 
 	this.grid = [];
 	for (let i = 0; i < this.size; i++) {
 		this.grid.push([]);
-		for ( let j = 0; j < this.size; j++) {
+		for (let j = 0; j < this.size; j++) {
 			this.grid[i][j] = null;
 		}
 	}
@@ -26,14 +27,14 @@ function GameField(size) {
 		if (this.grid[row][col] !== null) return;
 		this.grid[row][col] = symbol;
 		this.count++;
-		this.updateWinner(row, col);
+		this.updateWinnerAndWinningCombinations(row, col);
 	}
 
 	this.gameIsEnd = function () {
 		return (this.winner || this.count === this.size * this.size);
 	}
 
-	this.updateWinner = function (row, col) {
+	this.updateWinnerAndWinningCombinations = function (row, col) {
 		if (this.count < 5) return;
 		let counters = [0, 0, 0, 0];
 		for (let i = 0; i < this.size; i++) {
@@ -45,37 +46,25 @@ function GameField(size) {
 			}
 		}
 
+		console.log(counters);
+
 		if (counters.includes(this.size)) this.winner = CROSS;
 		if (counters.includes(-this.size)) this.winner = ZERO;
+		if (this.winner) {
+			let winType = counters.indexOf(this.winner === CROSS ? this.size : -this.size);
+			this.updateWinningCombination(winType, row, col);
+		}
 	}
 
-	this.getWinnerCombination = function () {
-		let result = [];
-		if (this.grid[0][0] === this.grid[this.size - 1][this.size - 1] && this.grid[0][0] === this.winner) {
+	this.updateWinningCombination = function (winType, row, col) {
+		{
 			for (let i = 0; i < this.size; i++) {
-				result.push([i, i]);
+				if (winType === 0) this.winningCombination.push([i, col]);
+				if (winType === 1) this.winningCombination.push([row, i]);
+				if (winType === 2) this.winningCombination.push([i, i]);
+				if (winType === 3) this.winningCombination.push([i, this.size - 1 - i]);
 			}
 		}
-		if (this.grid[0][this.size - 1] === this.grid[this.size - 1][0] && this.grid[0][this.size - 1] === this.winner) {
-			for (let i = 0; i < this.size; i++) {
-				result.push([i, this.size - 1 - i]);
-			}
-		}
-		for (let i = 0; i < this.size; i++) {
-			if (this.grid[0][i] === this.grid[this.size - 1][i] && this.grid[0][i] === this.winner) {
-				for (let j = 0; j < this.size; j++) {
-					result.push([j, i]);
-				}
-			}
-		}
-		for (let i = 0; i < this.size; i++) {
-			if (this.grid[i][0] === this.grid[i][this.size - 1] && this.grid[i][0] === this.winner) {
-				for (let j = 0; j < this.size; j++) {
-					result.push([i, j]);
-				}
-			}
-		}
-		return result;
 	}
 }
 
@@ -97,7 +86,7 @@ function cellClickHandler(row, col) {
 		} else {
 			alert("Победила дружба");
 		}
-		let winnerCombination = field.getWinnerCombination();
+		let winnerCombination = field.winningCombination;
 		for (const pair of winnerCombination) {
 			renderSymbolInCell(field.winner, pair[0], pair[1], '#FF0000');
 		}
