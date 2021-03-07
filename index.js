@@ -35,7 +35,7 @@ function GameField(size) {
 	}
 
 	this.updateWinnerAndWinningCombinations = function (row, col) {
-		if (this.count < 5) return;
+		if (this.count < this.size * 2 - 1) return;
 		let counters = [0, 0, 0, 0];
 		for (let i = 0; i < this.size; i++) {
 			const coordinates = [this.grid[i][col], this.grid[row][i], this.grid[i][i], this.grid[i][this.size - 1 - i]]
@@ -68,31 +68,36 @@ function GameField(size) {
 	}
 }
 
+function artificialIntelligenceMove() {
+	let randomEmptyCell = getRandomEmptyCell(field);
+	let count = 0;
+	entrance:
+		for (let i = 0; i < field.size; i++) {
+			for (let j = 0; j < field.size; j++) {
+				if (field.grid[i][j] === null) {
+					count++;
+					if (count === randomEmptyCell) {
+						moveOnCell(ZERO, i, j);
+						console.log(`AI clicked on cell: ${i}, ${j}`);
+						break entrance;
+					}
+				}
+			}
+		}
+}
+
+function getRandomEmptyCell(field) {
+	let maxNumber = field.size * field.size - field.count;
+	return Math.floor(Math.random() * (maxNumber + 1));
+}
+
 function cellClickHandler(row, col) {
-	const symbol = (field.count % 2 === 0) ? CROSS : ZERO;
-
-	if (!field.gameIsEnd()) {
-		field.add(symbol, row, col);
-		renderSymbolInCell(symbol, row, col);
+	if (field.count % 2 === 0) {
+		moveOnCell(CROSS, row, col);
+		console.log(`User clicked on cell: ${row}, ${col}`);
+	} else {
+		artificialIntelligenceMove();
 	}
-
-	console.log(field.grid);
-
-	if (field.gameIsEnd()) {
-		if (field.winner === ZERO) {
-			alert("Победили нолики");
-		} else if (field.winner === CROSS) {
-			alert("Победили крестики");
-		} else {
-			alert("Победила дружба");
-		}
-		let winnerCombination = field.winningCombination;
-		for (const pair of winnerCombination) {
-			renderSymbolInCell(field.winner, pair[0], pair[1], '#FF0000');
-		}
-	}
-
-	console.log(`Clicked on cell: ${row}, ${col}`);
 }
 
 function resetClickHandler() {
@@ -104,10 +109,29 @@ function resetClickHandler() {
 	}
 }
 
-function renderSymbolInCell(symbol, row, col, color = '#333') {
-	const targetCell = findCell(row, col);
-	targetCell.textContent = symbol;
-	targetCell.style.color = color;
+function moveOnCell(symbol, row, col) {
+	field.add(symbol, row, col);
+	renderSymbolInCell(symbol, row, col);
+	if (field.gameIsEnd()) {
+		colorWinningCombination();
+		displayGameResult();
+	}
+}
+
+function colorWinningCombination() {
+	for (const pair of field.winningCombination) {
+		renderSymbolInCell(field.winner, pair[0], pair[1], '#FF0000');
+	}
+}
+
+function displayGameResult() {
+	if (field.winner === ZERO) {
+		alert("Победили нолики");
+	} else if (field.winner === CROSS) {
+		alert("Победили крестики");
+	} else {
+		alert("Победила дружба");
+	}
 }
 
 function testWin() {
@@ -135,6 +159,12 @@ function testDraw() {
 
 function startGame() {
 	renderGrid(size);
+}
+
+function renderSymbolInCell(symbol, row, col, color = '#333') {
+	const targetCell = findCell(row, col);
+	targetCell.textContent = symbol;
+	targetCell.style.color = color;
 }
 
 function renderGrid(dimension) {
