@@ -3,38 +3,117 @@ const ZERO = 'O';
 const EMPTY = ' ';
 
 const container = document.getElementById('fieldWrapper');
-let field = new Field(3);
+let field = new GameField(3);
 
 startGame();
 addResetListener();
 
-function cellClickHandler(row, col) {
-	const symbol = (field.count % 2 === 0) ? CROSS : ZERO;
-	let count = field.count;
+function GameField(size) {
+	this.count = 0;
+	this.size = size;
+	this.winner = null;
+	this.grid = [];
 
-	field.add(symbol, row, col);
-	if (field.count !== count) renderSymbolInCell(symbol, row, col);
-	if (field.winner) alert(field.winner);
-	console.log(field.grid);
+
+	this.fillGrid = function () {
+		for (let i = 0; i < this.size; i++) {
+			this.grid.push([]);
+			for (let j = 0; j < this.size; j++) {
+				this.grid[i].push(null);
+			}
+		}
+	}
+
+	this.fillGrid();
+
+	this.add = function (symbol, row, col) {
+		if (!(this.grid[row][col] === null)) return;
+		this.grid[row][col] = symbol;
+		this.updateWinner(row, col);
+		this.count++;
+	}
+
+	this.gameIsEnd = function () {
+		return (this.winner || this.count === (this.size * this.size))
+	}
+
+	this.updateWinner = function (row, col) {
+		let counters = [0, 0, 0, 0];
+		for (let i = 0; i < this.size; i++) {
+			const coordinates = [this.grid[i][col], this.grid[row][i], this.grid[i][i], this.grid[i][this.size - 1 - i]]
+			for (let j = 0; j < 4; j++) {
+				if (coordinates[j] !== null) {
+					counters[j] += (coordinates[j] === CROSS) ? 1 : -1;
+				}
+			}
+		}
+
+		if (counters.includes(this.size)) this.winner = CROSS;
+		if (counters.includes(-this.size)) this.winner = ZERO;
+	}
+
+	this.getWinnerCombination = function () {
+		let result = [];
+		if (this.grid[0][0] === this.grid[this.size - 1][this.size - 1] && this.grid[0][0] === this.winner) {
+			for (let i = 0; i < this.size; i++) {
+				result.push([i, i]);
+			}
+		}
+		if (this.grid[0][this.size - 1] === this.grid[this.size - 1][0] && this.grid[0][this.size - 1] === this.winner) {
+			for (let i = 0; i < this.size; i++) {
+				result.push([i, this.size - 1 - i]);
+			}
+		}
+		for (let i = 0; i < this.size; i++) {
+			if (this.grid[0][i] === this.grid[this.size - 1][i] && this.grid[0][i] === this.winner) {
+				for (let j = 0; j < this.size; j++) {
+					result.push([j, i]);
+				}
+			}
+		}
+		for (let i = 0; i < this.size; i++) {
+			if (this.grid[i][0] === this.grid[i][this.size - 1] && this.grid[i][0] === this.winner) {
+				for (let j = 0; j < this.size; j++) {
+					result.push([i, j]);
+				}
+			}
+		}
+		return result;
+	}
+}
+
+function cellClickHandler(row, col) {
+	console.log(field.count);
+	const symbol = (field.count % 2 === 0) ? CROSS : ZERO;
+
+	if (!field.gameIsEnd()) {
+		field.add(symbol, row, col);
+		renderSymbolInCell(symbol, row, col);
+	}
+
+	if (field.gameIsEnd()) {
+		if (field.winner === ZERO) {
+			alert("Победили нолики");
+		} else if (field.winner === CROSS) {
+			alert("Победили крестики");
+		} else {
+			alert("Победила дружба");
+		}
+		let winnerCombination = field.getWinnerCombination();
+		for (const pair of winnerCombination) {
+			renderSymbolInCell(field.winner, pair[0], pair[1], '#FF0000');
+		}
+	}
+
 	console.log(`Clicked on cell: ${row}, ${col}`);
 }
 
-function startGame() {
-	renderGrid(3);
-}
-
-function renderGrid(dimension) {
-	container.innerHTML = '';
-
-	for (let i = 0; i < dimension; i++) {
-		const row = document.createElement('tr');
-		for (let j = 0; j < dimension; j++) {
-			const cell = document.createElement('td');
-			cell.textContent = EMPTY;
-			cell.addEventListener('click', () => cellClickHandler(i, j));
-			row.appendChild(cell);
+function resetClickHandler() {
+	field = new GameField(3);
+	for (let i = 0; i < field.size; i++) {
+		for (let j = 0; j < field.size; j++) {
+			renderSymbolInCell(EMPTY, i, j);
 		}
-		container.appendChild(row);
 	}
 }
 
@@ -42,24 +121,6 @@ function renderSymbolInCell(symbol, row, col, color = '#333') {
 	const targetCell = findCell(row, col);
 	targetCell.textContent = symbol;
 	targetCell.style.color = color;
-}
-
-function findCell(row, col) {
-	const targetRow = container.querySelectorAll('tr')[row];
-	return targetRow.querySelectorAll('td')[col];
-}
-
-function clickOnCell(row, col) {
-	findCell(row, col).click();
-}
-
-function addResetListener() {
-	const resetButton = document.getElementById('reset');
-	resetButton.addEventListener('click', resetClickHandler);
-}
-
-function resetClickHandler() {
-	console.log('reset!');
 }
 
 function testWin() {
@@ -85,50 +146,35 @@ function testDraw() {
 	clickOnCell(2, 2);
 }
 
-function Field(size) {
+function startGame() {
+	renderGrid(3);
+}
 
-	this.count = 0;
-	this.size = size;
-	this.winner = null;
+function renderGrid(dimension) {
+	container.innerHTML = '';
 
-	this.grid = [];
-	for (let i = 0; i < size; i++) {
-		this.grid.push([]);
-		for (let j = 0; j < size; j++) {
-			this.grid[i].push(null);
+	for (let i = 0; i < dimension; i++) {
+		const row = document.createElement('tr');
+		for (let j = 0; j < dimension; j++) {
+			const cell = document.createElement('td');
+			cell.textContent = EMPTY;
+			cell.addEventListener('click', () => cellClickHandler(i, j));
+			row.appendChild(cell);
 		}
+		container.appendChild(row);
 	}
+}
 
-	this.add = function (symbol, row, col) {
-		if (!(this.grid[row][col] === null)) return;
-		this.grid[row][col] = symbol;
-		this.updateWinner(row, col);
-		if (this.gameIsEnd()) alert(this.winner);
-		this.count++;
-	}
+function findCell(row, col) {
+	const targetRow = container.querySelectorAll('tr')[row];
+	return targetRow.querySelectorAll('td')[col];
+}
 
-	this.gameIsEnd = function () {
-		return (this.count === size * size);
-	}
+function clickOnCell(row, col) {
+	findCell(row, col).click();
+}
 
-	this.updateWinner = function (row, col) {
-		let counters = [0, 0, 0, 0];
-		for (let i = 0; i < this.size; i++) {
-			if (this.grid[i][col] !== null) {
-				counters[0] += (this.grid[i][col] === CROSS) ? 1 : -1;
-			}
-			if (this.grid[row][i] !== null) {
-				counters[1] += (this.grid[row][i] === CROSS) ? 1 : -1;
-			}
-			if (this.grid[i][i] !== null) {
-				counters[2] += (this.grid[i][i] === CROSS) ? 1 : -1;
-			}
-			if (this.grid[i][this.size - 1 - i] !== null) {
-				counters[3] += (this.grid[i][this.size - 1 - i] === CROSS) ? 1 : -1;
-			}
-		}
-
-		if (counters.includes(3)) this.winner = CROSS;
-		if (counters.includes(-3)) this.winner = ZERO;
-	}
+function addResetListener() {
+	const resetButton = document.getElementById('reset');
+	resetButton.addEventListener('click', resetClickHandler);
 }
