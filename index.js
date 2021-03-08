@@ -14,12 +14,23 @@ function GameField(size) {
 	this.size = size;
 	this.winner = null;
 	this.winningCombination = [];
+	this.artificialIntelligenceMoves = [];
 
 	this.grid = [];
 	for (let i = 0; i < this.size; i++) {
 		this.grid.push([]);
 		for (let j = 0; j < this.size; j++) {
 			this.grid[i][j] = null;
+		}
+	}
+
+	this.gridExpansion = function () {
+		this.grid.push([]);
+		for (let i = 0; i < this.grid.length - 1; i++) {
+			this.grid[this.grid.length - 1].push(null);
+		}
+		for (let i = 0; i < this.grid.length; i++) {
+			this.grid[i].push(null);
 		}
 	}
 
@@ -46,8 +57,6 @@ function GameField(size) {
 			}
 		}
 
-		console.log(counters);
-
 		if (counters.includes(this.size)) this.winner = CROSS;
 		if (counters.includes(-this.size)) this.winner = ZERO;
 		if (this.winner) {
@@ -71,19 +80,19 @@ function GameField(size) {
 function artificialIntelligenceMove() {
 	let randomEmptyCell = getRandomEmptyCell(field);
 	let count = 0;
-	entrance:
-		for (let i = 0; i < field.size; i++) {
-			for (let j = 0; j < field.size; j++) {
-				if (field.grid[i][j] === null) {
-					count++;
-					if (count === randomEmptyCell) {
-						moveOnCell(ZERO, i, j);
-						console.log(`AI clicked on cell: ${i}, ${j}`);
-						break entrance;
-					}
+	for (let i = 0; i < field.size; i++) {
+		for (let j = 0; j < field.size; j++) {
+			if (field.grid[i][j] === null) {
+				count++;
+				if (count === randomEmptyCell) {
+					moveOnCell(ZERO, i, j);
+					field.artificialIntelligenceMoves.push([i, j]);
+					console.log(`AI clicked on cell: ${i}, ${j}`);
+					return;
 				}
 			}
 		}
+	}
 }
 
 function getRandomEmptyCell(field) {
@@ -102,6 +111,7 @@ function cellClickHandler(row, col) {
 
 function resetClickHandler() {
 	field = new GameField(size);
+	renderGrid(size);
 	for (let i = 0; i < field.size; i++) {
 		for (let j = 0; j < field.size; j++) {
 			renderSymbolInCell(EMPTY, i, j);
@@ -110,12 +120,27 @@ function resetClickHandler() {
 }
 
 function moveOnCell(symbol, row, col) {
-	field.add(symbol, row, col);
-	renderSymbolInCell(symbol, row, col);
+	if (field.grid[row][col] === null) {
+		field.add(symbol, row, col);
+		renderSymbolInCell(symbol, row, col);
+
+	}
+
 	if (field.gameIsEnd()) {
 		colorWinningCombination();
 		displayGameResult();
+	} else if (field.count * 2 > field.size * field.size) {
+		field.size++;
+		field.gridExpansion();
+		renderGrid(field.size);
+		for (let i = 0; i < field.grid.length - 1; i++) {
+			for (let j = 0; j < field.grid.length - 1; j++) {
+				renderSymbolInCell(field.grid[i][j], i, j);
+			}
+		}
 	}
+
+	console.log(field.grid);
 }
 
 function colorWinningCombination() {
