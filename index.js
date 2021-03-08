@@ -38,8 +38,8 @@ function cellClickHandler (row, col) {
     if (isOver || matrix[row][col] !== EMPTY) { return; }
     matrix[row][col] = currentPlayer;
     renderSymbolInCell(currentPlayer, row, col);
-    let coords = getWinCoords();
-    if (coords.length != 0) {
+    let coords = getWinCoords2();
+    if (coords.length === matrix.length) {
         for (let point of coords) {
             renderSymbolInCell(currentPlayer, point[0], point[1], '#ff0000');
         }
@@ -73,6 +73,68 @@ function getWinCoords() {
     if (symbol === matrix[1][0] && symbol == matrix[1][2] && symbol != EMPTY) {return [[1, 0], [1, 1], [1, 2]];}
     if (symbol === matrix[0][1] && symbol == matrix[2][1] && symbol != EMPTY) {return [[0, 1], [1, 1], [2, 1]];}
     return [];
+}
+
+function getWinCoords2() {
+    let coords = [];
+    let symbol = EMPTY;
+    for (let i = 0; i < matrix.length; i++) {
+        symbol = matrix[i][0];
+        coords = [];
+        for (let j = 0; i < matrix.length; j++) {
+            if (matrix[i][j] === symbol && symbol != EMPTY) {
+                coords.push([i, j]);
+            }
+            else {
+                break;
+            }
+            if (coords.length === matrix.length) {
+                return coords;
+            }
+        }
+    }
+    for (let i = 0; i < matrix.length; i++) {
+        symbol = matrix[0][i];
+        coords = [];
+        for (let j = 0; j < matrix.length; j++) {
+            if (matrix[j][i] === symbol && symbol != EMPTY) {
+                coords.push([j, i]);
+            }
+            else {
+                break;
+            }
+            if (coords.length === matrix.length) {
+                return coords;
+            }
+        }
+    }
+    symbol = matrix[0][0];
+    coords = [];
+    for (let i = 0; i < matrix.length; i++) {
+        if (matrix[i][i] === symbol && symbol != EMPTY) {
+            coords.push([i, i]);
+        }
+        else {
+            break;
+        }
+        if (coords.length === matrix.length) {
+            return coords;
+        }
+    }
+    symbol = matrix[0][matrix.length - 1];
+    coords = [];
+    for (let i = matrix.length - 1; i > -1; i--) {
+        if (matrix[i][matrix.length - 1 - i] === symbol && symbol != EMPTY) {
+            coords.push([i, matrix.length - 1 - i]);
+        }
+        else {
+            break;
+        }
+        if (coords.length === matrix.length) {
+            return coords;
+        }
+    }
+    return coords;
 }
 
 function isMatrixFilled() {
