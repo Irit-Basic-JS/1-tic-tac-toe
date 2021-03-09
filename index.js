@@ -6,6 +6,7 @@ const RED = '#FF0000';
 
 const container = document.getElementById('fieldWrapper');
 
+let dimension;
 let field;
 let gameStatus;
 let emptyCells;
@@ -15,13 +16,13 @@ startGame();
 addResetListener();
 
 function startGame () {
-    const dimension = 3
-
-    renderGrid(dimension);
-    createField(dimension);
+    dimension = +prompt('Введи размер поля', 3);
     emptyCells = dimension ** 2;
     gameStatus = 'game';
     currentSymbol = CROSS;
+
+    createField(dimension);
+    renderGrid(dimension);
 }
 
 function renderGrid (dimension) {
@@ -31,7 +32,7 @@ function renderGrid (dimension) {
         const row = document.createElement('tr');
         for (let j = 0; j < dimension; j++) {
             const cell = document.createElement('td');
-            cell.textContent = EMPTY;
+            cell.textContent = field[i][j];
             cell.addEventListener('click', () => cellClickHandler(i, j));
             row.appendChild(cell);
         }
@@ -43,25 +44,39 @@ function createField(dimension) {
     field = [];
     for (let i = 0; i < dimension; i++) {
         field[i] = [];
-        for (let j = 0; j < dimension; j++){
+        for (let j = 0; j < dimension; j++) {
             field[i][j] = EMPTY;
         }
     }
 }
 
 function cellClickHandler (row, col) {
-    if (gameStatus === 'game') {
-        if (field[row][col] === EMPTY) {
-            field[row][col] = currentSymbol;
-            renderSymbolInCell(currentSymbol, row, col);
-            currentSymbol = currentSymbol === CROSS ? ZERO : CROSS;
-            emptyCells--;
+    if (field[row][col] == EMPTY) {
+        if (gameStatus == 'game') {
+            setCell(currentSymbol, row, col);
+            gameStatus = GameStatus();
         }
 
-        gameStatus = GameStatus();
+        if (gameStatus == 'game') {
+            goodAI();
+            //sillyAI();
+
+            if (emptyCells < parseInt(field.length ** 2 / 2)) {
+                extendField();
+            }
+
+            gameStatus = GameStatus();
+        }
     }
 
     console.log(`Clicked on cell: ${row}, ${col}`);
+}
+
+function setCell (symbol, row, col) {
+    field[row][col] = symbol;
+    renderSymbolInCell(symbol, row, col);
+    emptyCells--;
+    currentSymbol = currentSymbol === CROSS ? ZERO : CROSS;
 }
 
 function GameStatus () {
@@ -79,6 +94,84 @@ function GameStatus () {
             message('Победила дружба');
             return 'draw';
         default: return 'game';
+    }
+}
+
+function extendField () {
+    dimension++;
+
+    for (let i = 0; i < dimension - 1; i++) {
+        field[i].push(EMPTY);
+    }
+
+    let row = [];
+    for (let i = 0; i < dimension; i++) {
+        row.push(EMPTY);
+    }
+    field.push(row);
+
+    emptyCells += dimension * 2 - 1;
+    renderGrid(dimension);
+}
+
+function sillyAI () {
+    const randomCell = getRandomEmptyCell();
+    const row = randomCell[0];
+    const col = randomCell[1];
+
+    setCell(currentSymbol, row, col);
+}
+
+function goodAI () {
+    const lines = getLines();
+    let cell = getRandomEmptyCell();
+
+    for (let i = 0; i < lines.length; i++) {
+        const crossCount = getCountSymbolInLine(lines[i], CROSS);
+        const zeroCount = getCountSymbolInLine(lines[i], ZERO);
+        const emptyCount = dimension - (crossCount + zeroCount);
+        
+        if (zeroCount === dimension - 1 && emptyCount) {
+            cell = getEmptyCellInLine(lines[i]);
+            break;
+        }
+        if (crossCount === dimension - 1 && emptyCount) {
+            cell = getEmptyCellInLine(lines[i]);
+        } 
+    }
+
+    const row = cell[0];
+    const col = cell[1];
+    setCell(currentSymbol, row, col);
+}
+
+function getCountSymbolInLine (line, symbol) {
+    let count = 0;
+
+    for (let i = 0; i < dimension; i++) {
+        if (line.symbols[i] === symbol) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+function getEmptyCellInLine (line) {
+    for (let i = 0; i < dimension; i++) {
+        if (line.symbols[i] === EMPTY) {
+            return line.cells[i];
+        }
+    }
+}
+
+function getRandomEmptyCell () {
+    while (true) {
+        let randomCell = Math.floor(Math.random() * dimension ** 2);
+        let row = parseInt(randomCell / dimension);
+        let col = randomCell % dimension;
+
+        if (field[row][col] === EMPTY) return [row, col];
     }
 }
 
@@ -117,9 +210,9 @@ function getLines () {
 function getRows () {
     let rows = [];
 
-    for (let i = 0; i < field.length; i++) {
+    for (let i = 0; i < dimension; i++) {
         row = {symbols: [], cells: []}
-        for (let j = 0; j < field.length; j++) {
+        for (let j = 0; j < dimension; j++) {
             row.symbols.push(field[i][j]);
             row.cells.push([i, j]);
         }
@@ -132,9 +225,9 @@ function getRows () {
 function getColumns () {
     let columns = [];
 
-    for (let i = 0; i < field.length; i++) {
+    for (let i = 0; i < dimension; i++) {
         let column = {symbols: [], cells: []};
-        for (let j = 0; j < field.length; j++) {
+        for (let j = 0; j < dimension; j++) {
             column.symbols.push(field[j][i]);
             column.cells.push([j, i]);
         }
@@ -148,12 +241,12 @@ function getColumns () {
 function getDiagonals () {
     let diagonals = [ {symbols: [], cells: []}, {symbols: [], cells: []} ];
 
-    for (let i = 0; i < field.length; i++) {
+    for (let i = 0; i < dimension; i++) {
         diagonals[0].symbols.push(field[i][i]);
         diagonals[0].cells.push([i, i]);
 
-        diagonals[1].symbols.push(field[field.length - 1 - i][i])
-        diagonals[1].cells.push([field.length - 1 - i, i]);
+        diagonals[1].symbols.push(field[dimension - 1 - i][i])
+        diagonals[1].cells.push([dimension - 1 - i, i]);
     }
 
     return diagonals;
@@ -162,7 +255,7 @@ function getDiagonals () {
 function highlightWinner (line) {
     const symbol = line.symbols[0];
 
-    for (let i = 0; i < line.cells.length; i++) {
+    for (let i = 0; i < dimension; i++) {
         let row = line.cells[i][0];
         let col = line.cells[i][1];
         renderSymbolInCell(symbol, row, col, RED);
