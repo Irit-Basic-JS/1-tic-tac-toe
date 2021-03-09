@@ -101,12 +101,9 @@ function getRandomEmptyCell(field) {
 }
 
 function cellClickHandler(row, col) {
-	if (field.count % 2 === 0) {
-		moveOnCell(CROSS, row, col);
-		console.log(`User clicked on cell: ${row}, ${col}`);
-	} else {
-		artificialIntelligenceMove();
-	}
+	moveOnCell(CROSS, row, col);
+	console.log(`User clicked on cell: ${row}, ${col}`);
+	if (!field.winner) artificialIntelligenceMove();
 }
 
 function resetClickHandler() {
