@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="89c8664c-17b5-4c00-a13e-528af0d4bd0f" name="Default Changelist" comment="" />
+    <list default="true" id="89c8664c-17b5-4c00-a13e-528af0d4bd0f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,6 +15,7 @@
   <component name="GithubPullRequestsUISettings">
     <option name="recentSearchFilters">
       <list>
+        <option value="Белов Сергей" />
         <option value="state:open Белов Сергей" />
       </list>
     </option>
@@ -44,7 +47,7 @@
       <workItem from="1614621520362" duration="3800000" />
       <workItem from="1614967457947" duration="1356000" />
       <workItem from="1615220394496" duration="435000" />
-      <workItem from="1615272593828" duration="302000" />
+      <workItem from="1615272593828" duration="886000" />
     </task>
     <servers />
   </component>
