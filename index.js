@@ -17,9 +17,10 @@ function startGame() {
 }
 
 function cellClickHandler(row, col) {
+	let count = gameMap.count;
 	move(CROSS, row, col);
 	console.log(`User clicked on cell: ${row}, ${col}`);
-	if (!gameMap.winner) moveAI();
+	if (count !== gameMap.count) moveAI();
 }
 
 function resetClickHandler() {
@@ -28,41 +29,41 @@ function resetClickHandler() {
 }
 
 function move(symbol, row, col) {
-	 {
+	if (gameMap.winner) return;
+	if (gameMap.map[row][col] === null) {
 		gameMap.add(symbol, row, col);
 		renderSymbolInCell(symbol, row, col);
+		console.log(gameMap.map);
 	}
-
 	if (gameMap.winner) {
 		colorInRed(gameMap.winningCombination, gameMap.winner);
 		setTimeout(alertWinner, 300);
-	}
-
-	else if (gameMap.map.size * 2 > gameMap.size * gameMap.size) {
+	} else if (gameMap.count * 2 > gameMap.size * gameMap.size) {
 		gameMap.expand();
 		renderGrid(gameMap.size);
-		for (let [line, symbol] of gameMap.map) {
-			let [row, col] = line.split(' ');
-			renderSymbolInCell(symbol, row, col);
+		for (let row = 0; row < gameMap.size; row++) {
+			for (let col = 0; col < gameMap.size; col++) {
+				if (gameMap.map[row][col] !== null) {
+					renderSymbolInCell(gameMap.map[row][col], row, col);
+				}
+			}
 		}
 	}
 }
 
 function moveAI() {
+	if (gameMap.winner) return;
 	if (gameMap.AICanWin()) {
 		let [row, col] = gameMap.getAIWinCell();
 		move(ZERO, row, col);
+		console.log(`AI clicked on cell: ${row}, ${col}`);
+		return;
 	}
-
-	let emptyCellCount = gameMap.size * gameMap.size - gameMap.map.size;
-	let randomEmptyCell = getRandomInteger(emptyCellCount);
-	for (let row = 0; row < gameMap.size; row++) {
-		for (let col = 0; col < gameMap.size; col++) {
-			if (!gameMap.map.has(`${row} ${col}`)) {
-				randomEmptyCell--;
-				if (randomEmptyCell === 0) move(ZERO, row, col);
-			}
-		}
+	let count = gameMap.count;
+	while (count === gameMap.count) {
+		let row = getRandomInteger(gameMap.size - 1);
+		let col = getRandomInteger(gameMap.size - 1);
+		move(ZERO, row, col);
 	}
 }
 
@@ -72,9 +73,17 @@ function getRandomInteger(integer) {
 
 function GameMap(size) {
 	this.size = size;
+	this.count = 0;
 	this.winner = null;
 	this.winningCombination = [];
-	this.map = new Map;
+
+	this.map = [];
+	for (let i = 0; i < this.size; i++) {
+		this.map.push([]);
+		for (let j = 0; j < this.size; j++) {
+			this.map[i][j] = null;
+		}
+	}
 
 	let result = {}
 	result.rows = new Array(size).fill(0);
@@ -85,16 +94,26 @@ function GameMap(size) {
 		this.size++;
 		result.rows.push(0);
 		result.columns.push(0);
+		this.map.push([]);
+		for (let i = 0; i < this.map.length - 1; i++) {
+			this.map[this.map.length - 1].push(null);
+		}
+		for (let i = 0; i < this.map.length; i++) {
+			this.map[i].push(null);
+		}
 	}
 
 	this.add = function (symbol, row, col) {
-		this.map.set(`${row} ${col}`, symbol);
+		this.map[row][col] = symbol;
+		this.count++;
 		this.updateResult(symbol, row, col);
 		this.updateWinner(symbol);
 	}
 
 	this.updateResult = function (symbol, row, col) {
-		let value = symbol === CROSS ? 1 : -1;
+		let value;
+		if (symbol === CROSS) value = 1;
+		if (symbol === ZERO) value = -1;
 		result.rows[row] += value;
 		result.columns[col] += value;
 		if (row === col) result.diagonals[0] += value;
@@ -108,7 +127,7 @@ function GameMap(size) {
 			|| result.diagonals.includes(value)) {
 			this.winner = symbol;
 			this.updateWinningCombination(symbol);
-		} else if (this.map.size === this.size * this.size) this.winner = EMPTY;
+		} else if (this.count === this.size * this.size) this.winner = EMPTY;
 	}
 
 	this.updateWinningCombination = function (symbol) {
@@ -149,26 +168,26 @@ function GameMap(size) {
 		if (result.rows.includes(value)) {
 			let row = result.rows.indexOf(value);
 			for (let col = 0; col < this.size; col++) {
-				if (!this.map.has(`${row} ${col}`))
+				if (this.map[row][col] === null)
 					return [row, col];
 			}
 		}
 		if (result.columns.includes(value)) {
 			let col = result.columns.indexOf(value);
 			for (let row = 0; row < this.size; row++) {
-				if (!this.map.has(`${row} ${col}`))
+				if (this.map[row][col] === null)
 					return [row, col];
 			}
 		}
 		if (result.diagonals[0] === value) {
 			for (let i = 0; i < this.size; i++) {
-				if (!this.map.has(`${i} ${i}`))
+				if (this.map[i][i] === null)
 					return [i, i];
 			}
 		}
 		if (result.diagonals[1] === value) {
 			for (let i = 0; i < this.size; i++) {
-				if (!this.map.has(`${i} ${this.size - 1 - i}`))
+				if (this.map[i][this.size - 1 - i])
 					return [i, this.size - 1 - i];
 			}
 		}
