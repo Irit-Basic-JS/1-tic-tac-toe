@@ -1,19 +1,23 @@
 const CROSS = 'X';
 const ZERO = 'O';
-const EMPTY = ' ';
+const EMPTY = '';
 
 const container = document.getElementById('fieldWrapper');
 
 let count = 0; // Количество совершенных ходов, при наличие победителя равен -1
 let dim = 3; // Размерность поля
 let arr = new Array(); // Массив, хранящий информацию о состоянии игрового поля
+let grow = false; // индикатор режима расширяющегося поля, true - режим включен
 
 startGame();
 addResetListener();
 
 function startGame ()
 {
-    dim = Number(prompt('Размер поля:', dim)) || dim; // Запрос размера поля
+    dim = Number(prompt('Размер поля (не меньше 3 и не больше 10):', dim)) || dim; // Запрос размера поля
+    if (dim < 3) dim = 3;
+    if (dim > 10) dim = 10;
+    grow = confirm ('Включить режим расширяюшегося поля?');
     count = 0;
     // Игровое поле пустое, соответственно заполняем массив
     for (let row = 0; row < dim; row++)
@@ -46,9 +50,9 @@ function renderGrid (dimension)
 
 // Ход крестика
 function cellClickHandler (row, col)
-{
+{    console.log(`Клик on cell: ${row}, ${col}.`);
     // Если ячейка не пустая или уже есть победитель, то прерываем выполнение функции
-    if ((findCell(row, col).textContent !== EMPTY) || (count === -1)) return;
+    if ((arr[row][col] !== EMPTY) || (count === -1)) return;
     count++; // Увеличиваем кол-во шагов на 1
     renderSymbolInCell(CROSS, row, col); // Ставим крестик
     if (findWin(CROSS, row, col)) // Если побеждают крестики
@@ -62,6 +66,9 @@ function cellClickHandler (row, col)
         setTimeout(() => alert('Победила дружба!'), 500);
         return;
     }
+    // Расширяем поле
+   if ((dim < 10) && (count > dim*dim/2) && grow) {growCell(); dim++;}
+
     // Ход нолика
     let EmpCl = new Array();    
     count++;
@@ -109,18 +116,20 @@ function cellClickHandler (row, col)
             }
 
         }
-    
+    // Расширяем поле
+    if ((dim < 10) && (count > dim*dim/2) && grow) {growCell(); dim++;}
+
     // Проверяем, могут ли этим ходом выиграть крестики. Если могут - ставим "противный" нолик
     EmpCl = CheckLine(ZERO, 0, 'dg'); // проверяем главную диагональ
         if (EmpCl[0] > -1)  
         {
-            renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]); 
+            setTimeout(() => renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]), 200); 
             return;  
         }
     EmpCl = CheckLine(ZERO, 0, 'dgp'); // проверяем побочную диагональ
         if (EmpCl[0] > -1)  
         {
-            renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]); 
+            setTimeout(() => renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]), 200); 
             return;  
         }
     for (let i = 0; i < dim; i++)
@@ -128,21 +137,21 @@ function cellClickHandler (row, col)
             EmpCl = CheckLine(ZERO, i, 'row');
             if (EmpCl[0] > -1)  
             
-            {   renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]); 
+            {    setTimeout(() => renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]), 200);  
                 return;  
             }
             // Проверяем столбец
             EmpCl = CheckLine(ZERO, i, 'col');
             if (EmpCl[0] > -1)  
             {
-                renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]); 
+                setTimeout(() => renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]), 200);  
                 return;  
             }
     }       
    // Если победных линий нет, ставим нолик случайным образом
-   setTimeout(() => setZero(), 200);
-   
+   setTimeout(() => setZero(), 200);  
 }
+
 // Определяем выигрышность линии - только одная ячейка пустая, а остальное заполнено, 
 // symbol - знак, который не должен встретиться на линии
 function CheckLine(symbol, i, line)
@@ -164,6 +173,33 @@ function CheckLine(symbol, i, line)
     return EmptyCell; 
 }
 
+// Расширение поля до 10
+function growCell ()
+{   // Добавляем строку на страницу и в массив arr
+    row = document.createElement('tr');
+    let d = dim;
+    arr[d] = new Array();
+    for (let j = 0; j < dim; j++)
+    {
+        const cell = document.createElement('td');
+        cell.textContent = EMPTY;
+        cell.addEventListener('click', () => cellClickHandler(d, j));
+        row.appendChild(cell);
+        arr[d][j] = EMPTY;
+    }
+    container.appendChild(row);
+    // Добавляем столбец на страницу и в массив arr
+    for (let i = 0; i < dim + 1; i++)
+    {
+        const row = container.querySelectorAll('tr')[i];
+        const cell = document.createElement('td');
+        cell.textContent = EMPTY;
+        cell.addEventListener('click', () => cellClickHandler(i, d));
+        row.appendChild(cell);
+        arr[i][d] = EMPTY;
+    }
+}
+
 // Случайный нолик
 function setZero ()
 {   // Случайным образом генерируем строку и столбец
@@ -173,7 +209,7 @@ function setZero ()
         row = Math.floor(Math.random() * dim);
         col = Math.floor(Math.random() * dim);
     }
-    while ((findCell(row, col).textContent !== EMPTY));
+    while ((arr[row][col] !== EMPTY));
     renderSymbolInCell(ZERO, row, col);
     if (count === dim * dim)
     {
