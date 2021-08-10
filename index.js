@@ -4,7 +4,7 @@ const EMPTY = ' ';
 
 const container = document.getElementById('fieldWrapper');
 
-let count = 0; // Количество совершенных ходов
+let count = 0; // Количество совершенных ходов, при наличие победителя равен -1
 let dim = 3; // Размерность поля
 let arr = new Array(); // Массив, хранящий информацию о состоянии игрового поля
 
@@ -15,12 +15,14 @@ function startGame ()
 {
     dim = Number(prompt('Размер поля:', dim)) || dim; // Запрос размера поля
     count = 0;
-    // Игровое поле пустое, соответственно заполняем массив 
+    // Игровое поле пустое, соответственно заполняем массив
     for (let row = 0; row < dim; row++)
     {
-        arr[row] = new Array(dim);
+        arr[row] = new Array();
         for (let col = 0; col < dim; col++)
+        {
             arr[row][col] = EMPTY;
+        }
     }
     renderGrid(dim);
 }
@@ -45,10 +47,10 @@ function renderGrid (dimension)
 // Ход крестика
 function cellClickHandler (row, col)
 {
-    // Если ячейка не пустая или есть победитель, то прерываем выполнение функции
-    if ((findCell(row, col).textContent !== EMPTY) || (count == -1)) return;
-    count++;
-    renderSymbolInCell(CROSS, row, col); // Ставим символ
+    // Если ячейка не пустая или уже есть победитель, то прерываем выполнение функции
+    if ((findCell(row, col).textContent !== EMPTY) || (count === -1)) return;
+    count++; // Увеличиваем кол-во шагов на 1
+    renderSymbolInCell(CROSS, row, col); // Ставим крестик
     if (findWin(CROSS, row, col)) // Если побеждают крестики
     {
         setTimeout(() => alert('Победили крестики!', 500));
@@ -60,35 +62,124 @@ function cellClickHandler (row, col)
         setTimeout(() => alert('Победила дружба!'), 500);
         return;
     }
-    setTimeout(() => setZero(), 200);
-    console.log(`Clicked on cell: ${row}, ${col}`);
+    // Ход нолика
+    let EmpCl = new Array();    
+    count++;
+    // Проверяем, могут ли этим ходом выиграть нолики. Если могут - ставим выигрышный нолик
+    // Проверяем диагонали
+    EmpCl = CheckLine(CROSS, 0, 'dg');
+            if (EmpCl[0] > -1)  // Красим победную в красный и ставим признак победы
+            {
+                for (let j = 0; j < dim; j++) 
+                     renderSymbolInCell(ZERO, j, j, '#FF0000');   
+                     setTimeout(() => alert('Победили нолики!', 500));
+                count = -1;
+                return;
+            }
+    EmpCl = CheckLine(CROSS, 0, 'dgp');
+            if (EmpCl[0] > -1)  // Красим победную в красный и ставим признак победы
+            {
+                for (let j = 0; j < dim; j++) 
+                     renderSymbolInCell(ZERO, j, dim - j - 1, '#FF0000'); 
+                     setTimeout(() => alert('Победили нолики!', 500));  
+                count = -1;
+                return;
+            }
+    
+    for (let i = 0; i < dim; i++)
+        {   // Проверяем строку
+            EmpCl = CheckLine(CROSS, i, 'row');
+            if (EmpCl[0] > -1)  
+            {
+                for (let j = 0; j < dim; j++) 
+                     renderSymbolInCell(ZERO, i, j, '#FF0000');   
+                     setTimeout(() => alert('Победили нолики!', 500));
+                count = -1;
+                return;
+            }
+            // Проверяем столбец
+            EmpCl = CheckLine(CROSS, i, 'col');
+            if (EmpCl[0] > -1)  
+            {
+                for (let j = 0; j < dim; j++) 
+                     renderSymbolInCell(ZERO, j, i, '#FF0000');   
+                     setTimeout(() => alert('Победили нолики!', 500));
+                count = -1;
+                return;
+            }
+
+        }
+    
+    // Проверяем, могут ли этим ходом выиграть крестики. Если могут - ставим "противный" нолик
+    EmpCl = CheckLine(ZERO, 0, 'dg'); // проверяем главную диагональ
+        if (EmpCl[0] > -1)  
+        {
+            renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]); 
+            return;  
+        }
+    EmpCl = CheckLine(ZERO, 0, 'dgp'); // проверяем побочную диагональ
+        if (EmpCl[0] > -1)  
+        {
+            renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]); 
+            return;  
+        }
+    for (let i = 0; i < dim; i++)
+    {   // Проверяем строку
+            EmpCl = CheckLine(ZERO, i, 'row');
+            if (EmpCl[0] > -1)  
+            
+            {   renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]); 
+                return;  
+            }
+            // Проверяем столбец
+            EmpCl = CheckLine(ZERO, i, 'col');
+            if (EmpCl[0] > -1)  
+            {
+                renderSymbolInCell(ZERO, EmpCl[0], EmpCl[1]); 
+                return;  
+            }
+    }       
+   // Если победных линий нет, ставим нолик случайным образом
+   setTimeout(() => setZero(), 200);
+   
+}
+// Определяем выигрышность линии - только одная ячейка пустая, а остальное заполнено, 
+// symbol - знак, который не должен встретиться на линии
+function CheckLine(symbol, i, line)
+{   let m = 0; 
+    let row; let col;
+    let EmptyCell = new Array(); // координаты пустой клетки
+    for (let j = 0; j < dim; j++)
+    {   if (line === 'row') {row = i; col = j;} // строка
+        if (line === 'col') {row = j; col = i;} // столбец
+        if (line === 'dg') {row = j; col = j;}  // диагональ главная
+        if (line === 'dgp') {row = j; col = dim - j -1;} // диагональ побочная
+        if (arr[row][col] === EMPTY) 
+           {
+               m++;
+               EmptyCell[0] = row; EmptyCell[1] = col;
+            }
+        if ((arr[row][col] === symbol) || (m > 1)) return EmptyCell[0] = -2;
+    }
+    return EmptyCell; 
 }
 
-// Ход нолика
+// Случайный нолик
 function setZero ()
-{
-    count++;
-    //Случайным образом генерируем строку и столбец
-    let row = Math.floor(Math.random() * dim);
-    let col = Math.floor(Math.random() * dim);
-    while (findCell(row, col).textContent != EMPTY)
+{   // Случайным образом генерируем строку и столбец
+    let row; let col;
+    do
     {
         row = Math.floor(Math.random() * dim);
         col = Math.floor(Math.random() * dim);
     }
+    while ((findCell(row, col).textContent !== EMPTY));
     renderSymbolInCell(ZERO, row, col);
-    if (findWin(ZERO, row, col))
-    {
-        setTimeout(() => alert('Победили нолики!', 500));
-        count = -1;
-        return;
-    }
     if (count === dim * dim)
     {
         setTimeout(() => alert('Победила дружба!'), 500);
         return;
     }
-    console.log(`Clicked on cell: ${row}, ${col}`);
 }
 
 // Определяем, есть ли победа после текущего хода
@@ -154,6 +245,7 @@ function renderSymbolInCell (symbol, row, col, color = '#333')
     targetCell.textContent = symbol;
     targetCell.style.color = color;
     arr[row][col] = symbol;
+    console.log(`${symbol} on cell: ${row}, ${col}. Цвет: ${color}`);
 }
 
 function findCell (row, col)
