@@ -106,3 +106,4 @@ dist
 .idea/modules.xml
 .idea/inspectionProfiles/Project_Default.xml
 .idea/1-tic-tac-toe.iml
+.idea/*
