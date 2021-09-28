@@ -5,7 +5,6 @@ body {
 
 .container {
     margin: 40px auto;
-    /*display: inline-block;*/
     width: auto;
     background-color: lightgoldenrodyellow;
     padding: 10px;
@@ -50,4 +49,24 @@ body {
     font-size: 16px;
     border: 3px solid orange;
     border-radius: 5px;
+}
+
+.dark {
+    background-color: black;
+}
+
+.text-white {
+    color: white;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.flex-center{
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
