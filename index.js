@@ -60,28 +60,40 @@ function botClick() {
     if (isGameOver) return;
     let freeCellCount = field.length ** 2 - turn;
     let randomFreeCell = Math.floor(Math.random() * freeCellCount);
-    let counter = 0;
     let row, col;
+    let symbol = ZERO;
+    [row, col] = getCellCoords(randomFreeCell, symbol);
+    console.log(`Bot clicked on cell: ${row}, ${col}`);
+    field[row][col] = symbol;
+    processClick(field[row][col], row, col);
+}
 
+function getCellCoords(randomFreeCell, symbol) {
+    let counter = 0;
+    let winRow, winCol, randRow, randCol;
     cellSearch: for (let y = 0; y < field.length; y++)
         for (let x = 0; x < field.length; x++) {
             if (field[y][x] === undefined) {
-                if (counter === randomFreeCell) {
-                    [row, col] = [y, x];
+                if (counter === randomFreeCell) 
+                    [randRow, randCol] = [y, x];
+                field[y][x] = symbol;
+                winner = checkWinner(symbol, y, x);
+                if (winner !== symbol) field[y][x] = undefined;
+                else {
+                    [winRow, winCol] = [y, x];
                     break cellSearch;
                 }
                 counter++;
             }
         }
-
-    console.log(`Bot clicked on cell: ${row}, ${col}`);
-    field[row][col] = ZERO;
-    processClick(field[row][col], row, col);
+    if (winner !== symbol)
+        return [randRow, randCol];
+    return [winRow, winCol];
 }
 
 function processClick(symbol, row, col) {
     renderSymbolInCell(symbol, row, col);
-    checkWin(symbol, row, col);  
+    winner = checkWinner(symbol, row, col);  
     turn++;  
     if (turn === maxTurns && !winner) isGameOver = true;
     else if (!winner) return;
@@ -90,51 +102,60 @@ function processClick(symbol, row, col) {
     announceWinner();
 }
 
-function checkWin(symbol, row, col) {
+function checkWinner(symbol, row, col) {
+    winCombination = checkForWinCombination(symbol, row, col);
+    //console.log(winCombination);
+    if (winCombination.length === field.length) {
+        isGameOver = true;
+        return symbol;
+    }
+    return "";
+}
+
+function checkForWinCombination(symbol, row, col) {
     if ((col === 0 || field[row][col - 1] === symbol) &&
         (col === field.length - 1 || field[row][col + 1] === symbol))
-        winCombination = getWinningCombo(winTypes.horizontal, symbol, row, col);
+        return getWinCombination(winTypes.horizontal, symbol, row, col);
 
     if ((row === 0 || field[row - 1][col] === symbol) &&
         (row === field.length - 1 || field[row + 1][col] === symbol))
-        winCombination = getWinningCombo(winTypes.vertical, symbol, row, col);
+        return getWinCombination(winTypes.vertical, symbol, row, col);
 
     if (row === col &&
         (row === 0 || field[row - 1][col - 1] === symbol) &&
         (row === field.length - 1 || field[row + 1][col + 1] === symbol))
-        winCombination = getWinningCombo(winTypes.diagonalLeft, symbol, row, col);
+        return getWinCombination(winTypes.diagonalLeft, symbol, row, col);
 
     if (field.length - 1 - row === col &&
         (row === 0 || field[row - 1][col + 1] === symbol) &&
         (col === 0 || field[row + 1][col - 1] === symbol))
-        winCombination = getWinningCombo(winTypes.diagonalRight, symbol, row, col);
-
-    if (winCombination.length === field.length) {
-        isGameOver = true;
-        winner = symbol;
-    }
-    //console.log(winCombination);
+        return getWinCombination(winTypes.diagonalRight, symbol, row, col);
+    return [];
 }
 
-function getWinningCombo(winType, symbol, row, col) {
+function getWinCombination(winType, symbol, row, col) {
     let combination = []
-    for (let i = 0; i < field.length; i++) {
+    combAssembly: for (let i = 0; i < field.length; i++) {
         switch (winType) {
             case winTypes.vertical:
-                if (field[i][col] === symbol)
-                    combination.push([i, col]);
+                if (field[i][col] !== symbol)
+                    break combAssembly;
+                combination.push([i, col]);
                 break;
             case winTypes.horizontal:
-                if (field[row][i] === symbol)
-                    combination.push([row, i]);
+                if (field[row][i] !== symbol)
+                    break combAssembly;
+                combination.push([row, i]);
                 break;
             case winTypes.diagonalLeft:
-                if (field[i][i] === symbol)
-                    combination.push([i, i]);
+                if (field[i][i] !== symbol)
+                    break combAssembly;
+                combination.push([i, i]);
                 break;
             case winTypes.diagonalRight:
-                if (field[field.length - 1 - i][i] === symbol)
-                    combination.push([field.length - 1 - i, i])
+                if (field[field.length - 1 - i][i] !== symbol)
+                    break combAssembly;
+                combination.push([field.length - 1 - i, i])
                 break;
         }
     }
