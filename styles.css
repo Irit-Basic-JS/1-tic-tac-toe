@@ -51,3 +51,13 @@ body {
     border: 3px solid orange;
     border-radius: 5px;
 }
+
+.input-size {
+    width: 10%;
+}
+
+.input-button {
+    margin-top: 3%;
+    width: 70px;
+    height: 20px;
+}
