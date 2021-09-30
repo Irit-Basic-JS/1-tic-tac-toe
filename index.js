@@ -1,8 +1,9 @@
 const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
+let usedCells=0;
 let isZero = false;
-let GridArray = [ [], [], []];
+let GridArray = [ [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY]];
 let IsWin= false;
 
 const container = document.getElementById('fieldWrapper');
@@ -29,24 +30,11 @@ function renderGrid (dimension) {
     }
 }
 
-function isDraw(){
-    let isFull=true;
-    for(let i=0; i<GridArray.length;i++)
-        for(let j=0; j<GridArray.length;j++){
-            if (GridArray[i][j]==undefined)
-            isFull=false;
-            break;
-        }
-    
-    if(!IsWin&&isFull)
-        alert('Победила дружба')
-}
-
 function findWinner (){
     for (let i = 0; i <= 2; i = i + 2)
 	{
 	    if((GridArray[0][0 + i] == GridArray[1][1]) && (GridArray[1][1] == GridArray[2][2- i])
-            && GridArray[0][0 + i]!=undefined && GridArray[1][1]!=undefined && GridArray[2][2- i]){ 
+            && ((GridArray[0][0 + i]==ZERO)|| GridArray[0][0 + i]==CROSS)){ 
                 renderSymbolInCell(GridArray[i][0], 0, i, '#f00');
                 renderSymbolInCell(GridArray[i][0], 1, 1, '#f00');
                 renderSymbolInCell(GridArray[i][0], 2, 2-i, '#f00');
@@ -58,7 +46,7 @@ function findWinner (){
 	for (let i = 0; i < 3; i++)
 	{
 	    if(GridArray[i][0] == GridArray[i][1] && GridArray[i][1] == GridArray[i][ 2]
-            && GridArray[i][0]!=undefined && GridArray[i][1]!=undefined && GridArray[i][2]){
+            && (GridArray[i][0]==ZERO|| GridArray[i][0]==CROSS)){
 	            renderSymbolInCell(GridArray[i][0], i, 0, '#f00');
                 renderSymbolInCell(GridArray[i][0], i, 1, '#f00');
                 renderSymbolInCell(GridArray[i][0], i, 2, '#f00');
@@ -68,7 +56,7 @@ function findWinner (){
             }
               
 	    if(GridArray[0][i] == GridArray[1][i] && GridArray[1][i] == GridArray[2][i] 
-            && GridArray[0][i]!=undefined &&GridArray[1][i]!=undefined && GridArray[2][ i]){
+            && (GridArray[0][i]==ZERO||GridArray[0][i]==CROSS)){
                 renderSymbolInCell(GridArray[1][i], 1, i, '#f00');
                 renderSymbolInCell(GridArray[i][0], 2, i, '#f00');
                 renderSymbolInCell(GridArray[i][0], 0, i, '#f00');
@@ -83,6 +71,8 @@ function findWinner (){
 function resetClickHandler () {
     console.log('reset!');
     IsWin=false;
+    isZero=false;
+    usedCells = 0;
     GridArray =  [ [], [], []];
     for(i=0;i<3;i++)
         for(j=0;j<3;j++)
@@ -97,19 +87,23 @@ function cellClickHandler (row, col) {
     // Пиши код тут
     console.log(`Clicked on cell: ${row}, ${col}`);
     if(!IsWin){
-    if(GridArray[row][col]==null){
+    if(GridArray[row][col]!=ZERO||GridArray[row][col]!=CROSS){
         if (isZero){
             GridArray[row][col]=ZERO;
+            usedCells++;
             renderSymbolInCell(ZERO, row, col);
             isZero=false;
         }
         else{
             GridArray[row][col]=CROSS;
+            usedCells++
             renderSymbolInCell(CROSS, row, col);
             isZero = true;
         }
         findWinner();
-        isDraw();
+        if (usedCells==GridArray.length**2&&!IsWin)
+            alert("Победила дружба")
+        
     }
        
 
