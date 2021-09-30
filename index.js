@@ -1,3 +1,6 @@
+"use strict";
+
+
 const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
@@ -13,30 +16,112 @@ function startGame () {
 
 function renderGrid (dimension) {
     container.innerHTML = '';
-
+    //size = dimension;
     for (let i = 0; i < dimension; i++) {
         const row = document.createElement('tr');
         for (let j = 0; j < dimension; j++) {
             const cell = document.createElement('td');
             cell.textContent = EMPTY;
-            cell.addEventListener('click', () => cellClickHandler(i, j));
+            cell.addEventListener('click', () => cellClickHandler(i, j, dimension));
             row.appendChild(cell);
         }
         container.appendChild(row);
     }
 }
 
-function cellClickHandler (row, col) {
-    // Пиши код тут
-    console.log(`Clicked on cell: ${row}, ${col}`);
+let i = 0;
+let clickedCells = [];
+let clickedCellsCross = [];
+let clickedCellsZero = [];
+let size = 0;
 
+const gameData = {
+    isWin : false,
+    methods : 
+    {
+        checkWinner(clickedCellsCross, clickedCellsZero) 
+        {
+            // if (gameData.methods.getAllWinsArr(3).includes(clickedCellsCross) || gameData.methods.getAllWinsArr(3).includes(clickedCellsZero)) 
+            var allWinsArr = gameData.methods.getAllWinsArr(3);
+            allWinsArr.forEach(item => {
+                if (item.toString() == clickedCellsCross.toString()) {
+                    alert("WINNER X");
+                    gameData.methods.paintCells("X", clickedCellsCross);
+                    this.isWin = true;
+                }
+                if (item.toString() == clickedCellsZero.toString()) {
+                    alert("WINNER 0");
+                    gameData.methods.paintCells("0", clickedCellsZero);
+                    this.isWin = true;
+                }
+            });
+        },
 
-    /* Пользоваться методом для размещения символа в клетке так:
-        renderSymbolInCell(ZERO, row, col);
-     */
+        getAllWinsArr(size) 
+        {
+            let e = [];
+            for (let i = 0; i < size; i++) 
+            {
+                let s = [], 
+                    h = [];
+                for (let e = 0; e < size; e++)
+                    s.push([i, e]),
+                    h.push([e, i]);
+                e.push(s);
+                e.push(h);
+            }
+            let tempArr = [];
+            for (let i = 0; i < size; i++) {
+                tempArr.push([i,i]);
+            }
+            e.push(tempArr);
+            tempArr = [];
+            for (let i = size - 1; i >= 0; i--) {
+                tempArr.push([size - i - 1, i]);
+            }
+            e.push(tempArr);
+            //console.log(e);
+            return e;
+        },
+
+        getNumbersBefore(number) {
+            let numbersArr = [];
+            for (let i = 0; i < number; i++) {
+                numbersArr.push(i);
+            }
+            console.log(numbersArr);
+        },
+
+        paintCells(symbol, clickedCells) {
+            clickedCells.forEach( item => {
+                renderSymbolInCell(symbol, item[0], item[1], "#FF0000");
+            });
+        }
+    }
+};
+
+function cellClickHandler (row, col, size) {  
+    if (!clickedCells.includes(`${row} ${col}`) && !gameData.isWin) {
+        if (i % 2 == 0) {
+            renderSymbolInCell(CROSS, row, col, "#333"); // X
+            clickedCellsCross.push([row, col]);
+        }
+        else {
+            renderSymbolInCell(ZERO, row, col, "#333"); // 0
+            clickedCellsZero.push([row, col]);
+        }
+        i++; 
+        clickedCells.push(`${row} ${col}`);
+        console.log(`Clicked on cell: ${row}, ${col}`);
+        if ((clickedCellsZero.length + clickedCellsCross.length) == size * size) 
+            alert("Победила дружба");
+    }
+    gameData.methods.checkWinner(clickedCellsCross, clickedCellsZero);
 }
 
-function renderSymbolInCell (symbol, row, col, color = '#333') {
+
+
+function renderSymbolInCell (symbol, row, col, color) {
     const targetCell = findCell(row, col);
 
     targetCell.textContent = symbol;
@@ -55,6 +140,7 @@ function addResetListener () {
 
 function resetClickHandler () {
     console.log('reset!');
+    renderGrid(3);
 }
 
 
