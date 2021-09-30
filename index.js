@@ -2,13 +2,25 @@ const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
 
+const winStates = {
+    CROSS: "Победили крестики!",
+    ZERO: "Победили нолики!"
+};
+
 const container = document.getElementById('fieldWrapper');
+
+let turn = CROSS;
+let fieldSize = 3;
+let turnsCount = 0;
+let field = [[], [], []];
+
+let isGameOver = false;
 
 startGame();
 addResetListener();
 
 function startGame () {
-    renderGrid(3);
+    renderGrid(fieldSize);
 }
 
 function renderGrid (dimension) {
@@ -27,7 +39,17 @@ function renderGrid (dimension) {
 }
 
 function cellClickHandler (row, col) {
-    // Пиши код тут
+    if (field[row][col] != undefined || isGameOver)
+        return;
+    renderSymbolInCell(turn, row, col);
+    
+    turnsCount++;
+    checkDraw();
+
+    field[row][col] = turn;
+    checkWinner(row, col);
+    changeTurn();
+
     console.log(`Clicked on cell: ${row}, ${col}`);
 
 
@@ -41,6 +63,10 @@ function renderSymbolInCell (symbol, row, col, color = '#333') {
 
     targetCell.textContent = symbol;
     targetCell.style.color = color;
+}
+
+function changeTurn(){
+    turn = turn === CROSS ? ZERO : CROSS;
 }
 
 function findCell (row, col) {
@@ -57,6 +83,39 @@ function resetClickHandler () {
     console.log('reset!');
 }
 
+function checkWinner(row, col){
+    cellValue = field[row][col];
+    horizontalWin = true;
+    verticalWin = true;
+    diagonalWin = row === col;
+    for (let i = 0; i < fieldSize; i++)
+    {
+        if (horizontalWin && field[row][i] != cellValue)
+            horizontalWin = false;
+        if (verticalWin && field[i][col] != cellValue)
+            verticalWin = false;
+
+        if (diagonalWin && (field[i][i] != cellValue || field[i][fieldSize - i - 1] != cellValue))
+            diagonalWin = false;
+    }
+
+    if (horizontalWin || verticalWin || diagonalWin)
+    {
+        isGameOver = true;
+        if (cellValue === CROSS)
+            alert(winStates.CROSS);
+        else
+            alert(winStates.ZERO);
+    }
+}
+
+function checkDraw(){
+    if (turnsCount === fieldSize * fieldSize)
+    {
+        alert("Победила дружба");
+        return;
+    }
+}
 
 /* Test Function */
 /* Победа первого игрока */
