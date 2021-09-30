@@ -56,13 +56,11 @@ function checkWinConditions() {
             lineSum += field[i][j];
             rowsSum[j] += field[i][j];
 
-            if (i === j) {
+            if (i === j)
                 diagonalsSum[0] += field[i][j];
-            }
 
-            if (i === fieldSize - j - 1) {
+            if (i === fieldSize - j - 1)
                 diagonalsSum[1] += field[i][j];
-            }
         }
 
         gameIsOver = applyWinMessage(lineSum, [i, 0], [i, fieldSize - 1]);
@@ -81,17 +79,22 @@ function checkWinConditions() {
             [0, i === 0 ? 0 : fieldSize - 1], [fieldSize - 1, i === 1 ? 0 : fieldSize - 1], true);
         if (gameIsOver) break;
     }
+
+    if (!gameIsOver && cellsRemaining === 0) {
+        alert("Победила дружба")
+        gameIsOver = true;
+    }
 }
 
 function applyWinMessage(sum, firstPoint, secondPoint, isDiagonal = false) {
     if (Math.abs(sum) == fieldSize) {
         if (sum > 0) {
             makeWinnerRed('X', firstPoint, secondPoint, isDiagonal);
-            alert(`Победили Иксы! \n XXXXXXXXXXXX`);
+            alert(`Победили Крестики! \nXXXXXXXXXXXXXXXX`);
         }
         else {
             makeWinnerRed('O', firstPoint, secondPoint, isDiagonal);
-            alert(`Победили Нолики! \n OOOOOOOOOOOO`);
+            alert(`Победили Нолики!   \n0000000000000000`);
         }
 
         return true;
@@ -101,39 +104,49 @@ function applyWinMessage(sum, firstPoint, secondPoint, isDiagonal = false) {
 }
 
 function makeWinnerRed(symbol, firstPoint, secondPoint, isDiagonal = false) {
-
     if (!isDiagonal) {
-        for (let i = firstPoint[0]; i <= secondPoint[0]; i++) {
-            for (let j = firstPoint[1]; j <= secondPoint[1]; j++) {
+        for (let i = firstPoint[0]; i <= secondPoint[0]; i++)
+            for (let j = firstPoint[1]; j <= secondPoint[1]; j++)
                 renderSymbolInCell(symbol, i, j, "red");
-            }
-        }
     }
-    else {
-        for (let i = 0; i < fieldSize; i++) {
-            renderSymbolInCell(symbol, i, firstPoint[1] === 0 ? i : fieldSize - i - 1, "red");
-        }
+    else for (let i = 0; i < fieldSize; i++) {
+        renderSymbolInCell(symbol, i, firstPoint[1] === 0 ? i : fieldSize - i - 1, "red");
     }
 
 }
 
 function cellClickHandler(row, col) {
     if (!gameIsOver) {
-        if (cellsRemaining === 0) {
-            alert("Победила дружба")
-            gameIsOver = true;
-        }
-
         if (field[row][col] === 0) {
             renderSymbolInCell(CROSS, row, col);
             field[row][col] = 1;
             cellsRemaining--;
 
             console.log(`Clicked on cell: ${row}, ${col}`);
-        }
 
-        checkWinConditions();
+            checkWinConditions();
+
+            if (!gameIsOver) {
+                makeBotMove();
+                checkWinConditions();
+            }
+        }
     }
+}
+
+function makeBotMove() {
+    let row = Math.floor(Math.random() * fieldSize);
+    let col = Math.floor(Math.random() * fieldSize);
+
+    while (field[row][col] != 0) {
+        row = Math.floor(Math.random() * fieldSize);
+        col = Math.floor(Math.random() * fieldSize);
+    }
+
+    renderSymbolInCell(ZERO, row, col);
+    field[row][col] = -1;
+    cellsRemaining--;
+    console.log(`Bot made move on cell: ${row}, ${col}`);
 }
 
 function renderSymbolInCell(symbol, row, col, color = '#333') {
