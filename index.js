@@ -43,10 +43,8 @@ function cellClickHandler (row, col) {   // срабатывает по клик
     if(cell.textContent == EMPTY){
         placeSymbolInCell(CROSS, row, col);
         console.log(`Clicked on cell: ${row}, ${col}`);
-        //console.log('stupidIntelligence start');
         if(inGame)
             stupidIntelligence();
-        //console.log('stupidIntelligence end');
     }
     else
         console.log(`Clicked on not empty cell: ${row}, ${col}`);
@@ -98,7 +96,6 @@ function findReasonToEndGame(lastRow, lastCol){ // обработка возмо
         alert('победила дружба');
         return;
     }
-
     let sym = findCell(lastRow, lastCol).textContent;
     let win = true;
 
@@ -132,7 +129,6 @@ function findReasonToEndGame(lastRow, lastCol){ // обработка возмо
         console.log('победа по горизонтали');
         return;
     }
-
     if(lastCol == lastRow){
         win = true;
         for(let i =0; i<tableSize; i++){
@@ -168,9 +164,48 @@ function findReasonToEndGame(lastRow, lastCol){ // обработка возмо
             return;
         }
     }
+    if(Number(totalPlaced)*2>=Number(tableSize)*Number(tableSize)){
+        console.log('checking largness enter if');
+        EnlargeField()
+    }
 }
 
-
+function EnlargeField() {
+ let newField = new Array(Number(tableSize)+2);
+console.log('enlarging');
+ for(let i=0;i<Number(tableSize)+2;i++){
+    newField[i] = new Array(Number(tableSize)+2);
+    newField[i][0]=EMPTY;
+    newField[i][Number(tableSize)+1]=EMPTY;
+    if(i===0 || i===Number(tableSize)+1){
+        for(let i1 =0;i1<Number(tableSize)+2;i1++)
+        newField[i][i1]=EMPTY;
+    }
+}
+console.log('created table');
+ for(let i =0; i<tableSize;i++){
+     for(let i1=0;i1<tableSize;i1++){
+        newField[i+1][i1+1] = table[i][i1];
+     }
+ }
+ table = newField;
+ tableSize= Number(tableSize)+2;
+ console.log('filled');
+ RenderEnlargedField();
+}
+function RenderEnlargedField() {
+    container.innerHTML = '';
+    for (let i = 0; i < tableSize; i++) {
+        const row = document.createElement('tr');
+        for (let j = 0; j < tableSize; j++) {
+            const cell = document.createElement('td');
+            cell.textContent = table[i][j];
+            cell.addEventListener('click', () => cellClickHandler(i, j));
+            row.appendChild(cell);
+        }
+        container.appendChild(row);
+    }
+}
 /* Test Function */
 /* Победа первого игрока */
 function testWin () {
