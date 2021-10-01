@@ -166,19 +166,21 @@ function announceWinner() {
 }
 
 function cellClickHandler(row, col) {
-    tryMakeMove(row, col);
-
-    ai.makeSimpleMove();
+    if (tryMakeMove(row, col)) {
+        ai.makeSimpleMove();
+    }
 }
 
 function tryMakeMove(row, col) {
     if (isGameOver || field.source[row][col].symbol !== EMPTY) {
-        return;
+        return false;
     }
 
     console.log(`Clicked on cell: ${row}, ${col}`);
 
     updateGame(row, col);
+
+    return true;
 }
 
 function switchCurrentSymbol() {
