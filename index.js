@@ -8,6 +8,7 @@ let turn;
 let winCombination;
 let isGameOver;
 let winner;
+let expansionEnabled;
 
 const winTypes = {
     horizontal: 'horiz',
@@ -27,18 +28,21 @@ function startGame() {
     winCombination = [];
     isGameOver = false;
     winner = "";
-    renderGrid(prompt("Задайте размер поля:", 3));
+    let dimension = prompt("Задайте размер поля:", 3);
+    for (let y = 0; y < dimension; y++)
+        field[y] = [];
+    expansionEnabled = confirm("Включить автоматическое расширение поля?");
+    renderGrid(dimension);
 }
 
 function renderGrid(dimension) {
     container.innerHTML = '';
     maxTurns = dimension ** 2;
     for (let i = 0; i < dimension; i++) {
-        field[i] = [];
         const row = document.createElement('tr');
         for (let j = 0; j < dimension; j++) {
             const cell = document.createElement('td');
-            cell.textContent = EMPTY;
+            cell.textContent = field[i][j] === undefined ? EMPTY : field[i][j];
             cell.addEventListener('click', () => cellClickHandler(i, j));
             row.appendChild(cell);
         }
@@ -74,7 +78,7 @@ function getCellCoords(randomFreeCell, symbol) {
     cellSearch: for (let y = 0; y < field.length; y++)
         for (let x = 0; x < field.length; x++) {
             if (field[y][x] === undefined) {
-                if (counter === randomFreeCell) 
+                if (counter === randomFreeCell)
                     [randRow, randCol] = [y, x];
                 field[y][x] = symbol;
                 winner = checkWinner(symbol, y, x);
@@ -93,8 +97,13 @@ function getCellCoords(randomFreeCell, symbol) {
 
 function processClick(symbol, row, col) {
     renderSymbolInCell(symbol, row, col);
-    winner = checkWinner(symbol, row, col);  
-    turn++;  
+    winner = checkWinner(symbol, row, col);
+    turn++;
+    if (expansionEnabled && turn * 2 >= field.length ** 2) {
+        field = expandField();
+        renderGrid(field.length);
+    }
+
     if (turn === maxTurns && !winner) isGameOver = true;
     else if (!winner) return;
     //console.log(isGameOver);
@@ -164,6 +173,21 @@ function getWinCombination(winType, symbol, row, col) {
     return [];
 }
 
+function expandField() {
+    let newSize = field.length + 2;
+    maxTurns = newSize ** 2;
+    let newField = [];
+    for (let y = 0; y < newSize; y++)
+        newField[y] = [];
+
+    for (let y = 0; y < field.length; y++)
+        for (let x = 0; x < field.length; x++)
+            newField[y + 1][x + 1] = field[y][x];
+
+    console.log("Field expanded!");
+    return newField;
+}
+
 function announceWinner() {
     if (!isGameOver) return;
     switch (winner) {
@@ -206,8 +230,8 @@ function addResetListener() {
 }
 
 function resetClickHandler() {
-    startGame();
     console.log('reset!');
+    startGame();
 }
 
 
