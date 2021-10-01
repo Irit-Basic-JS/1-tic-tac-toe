@@ -7,6 +7,11 @@ const winStates = {
     ZERO: "Победили нолики!"
 };
 
+let horizontalWin = true;
+let verticalWin = true;
+let leftDiagonalWin = true;
+let rightDiagonalWin = true;
+
 const container = document.getElementById('fieldWrapper');
 
 let turn = CROSS;
@@ -80,28 +85,42 @@ function addResetListener () {
 }
 
 function resetClickHandler () {
-    console.log('reset!');
+    field = []
+    for (let i = 0; i < fieldSize; i++){
+        for (let j = 0; j < fieldSize; j++){
+            renderSymbolInCell(EMPTY, i, j);
+        } 
+        field.push([]);
+    }
+    isGameOver = false;
+    turnsCount = 0;
 }
 
 function checkWinner(row, col){
-    cellValue = field[row][col];
+    let cellValue = field[row][col];
     horizontalWin = true;
     verticalWin = true;
-    diagonalWin = row === col;
+    leftDiagonalWin = true;
+    rightDiagonalWin = true;
     for (let i = 0; i < fieldSize; i++)
     {
         if (horizontalWin && field[row][i] != cellValue)
             horizontalWin = false;
+
         if (verticalWin && field[i][col] != cellValue)
             verticalWin = false;
 
-        if (diagonalWin && (field[i][i] != cellValue || field[i][fieldSize - i - 1] != cellValue))
-            diagonalWin = false;
+        if (leftDiagonalWin && field[i][i] != cellValue)
+            leftDiagonalWin = false;
+
+        if (rightDiagonalWin && field[i][fieldSize - i - 1] != cellValue)
+            rightDiagonalWin = false;
     }
 
-    if (horizontalWin || verticalWin || diagonalWin)
+    if (horizontalWin || verticalWin || leftDiagonalWin || rightDiagonalWin)
     {
         isGameOver = true;
+        paintWinnerCells(row, col);
         if (cellValue === CROSS)
             alert(winStates.CROSS);
         else
@@ -109,10 +128,28 @@ function checkWinner(row, col){
     }
 }
 
+function paintWinnerCells(row, col){
+    for (let i = 0; i < fieldSize; i++)
+    {
+        if (horizontalWin)
+            renderSymbolInCell(field[row][col], row, i, '#FF0000');
+        
+        else if (verticalWin)
+            renderSymbolInCell(field[row][col], i, col, '#FF0000');
+
+        else if (leftDiagonalWin)
+            renderSymbolInCell(field[row][col], i, i, '#FF0000');
+
+        else if (rightDiagonalWin)
+            renderSymbolInCell(field[row][col], i, fieldSize - i - 1, '#FF0000');
+    }
+}
+
 function checkDraw(){
     if (turnsCount === fieldSize * fieldSize)
     {
         alert("Победила дружба");
+        isGameOver = true;
         return;
     }
 }
