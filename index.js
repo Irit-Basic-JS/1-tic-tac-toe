@@ -8,6 +8,7 @@ let field = {}; // -1 = ZERO; 0 = EMPTY; 1 = CROSS
 let fieldSize = 3;
 let cellsRemaining = 9;
 let gameIsOver = false;
+let botPreset = [null, null]
 
 startGame();
 addResetListener();
@@ -45,7 +46,26 @@ function createField(dimension) {
             field[i][j] = 0;
 }
 
-function checkWinConditions() {
+function cellClickHandler(row, col) {
+    if (!gameIsOver) {
+        if (field[row][col] === 0) {
+            renderSymbolInCell(CROSS, row, col);
+            field[row][col] = 1;
+            cellsRemaining--;
+
+            console.log(`Clicked on cell: ${row}, ${col}`);
+
+            checkWinConditions();
+
+            if (!gameIsOver) {
+                makeBotMove();
+                checkWinConditions(true);
+            }
+        }
+    }
+}
+
+function checkWinConditions(isBotMove = false) {
     let rowsSum = new Array(fieldSize).fill(0);
     let diagonalsSum = new Array(2).fill(0);
 
@@ -63,20 +83,20 @@ function checkWinConditions() {
                 diagonalsSum[1] += field[i][j];
         }
 
-        gameIsOver = applyWinMessage(lineSum, [i, 0], [i, fieldSize - 1]);
+        gameIsOver = displayWinMessage(lineSum, [i, 0], [i, fieldSize - 1], isBotMove);
         if (gameIsOver) break;
     }
     if (gameIsOver) return;
 
     for (let i = 0; i < fieldSize; i++) {
-        gameIsOver = applyWinMessage(rowsSum[i], [0, i], [fieldSize - 1, i]);
+        gameIsOver = displayWinMessage(rowsSum[i], [0, i], [fieldSize - 1, i], isBotMove);
         if (gameIsOver) break;
     }
     if (gameIsOver) return;
 
     for (let i = 0; i < fieldSize; i++) {
-        gameIsOver = applyWinMessage(diagonalsSum[i],
-            [0, i === 0 ? 0 : fieldSize - 1], [fieldSize - 1, i === 1 ? 0 : fieldSize - 1], true);
+        gameIsOver = displayWinMessage(diagonalsSum[i],
+            [0, i === 0 ? 0 : fieldSize - 1], [fieldSize - 1, i === 1 ? 0 : fieldSize - 1], isBotMove, true);
         if (gameIsOver) break;
     }
 
@@ -86,8 +106,8 @@ function checkWinConditions() {
     }
 }
 
-function applyWinMessage(sum, firstPoint, secondPoint, isDiagonal = false) {
-    if (Math.abs(sum) == fieldSize) {
+function displayWinMessage(sum, firstPoint, secondPoint, isBotMove = false, isDiagonal = false) {
+    if (Math.abs(sum) === fieldSize) {
         if (sum > 0) {
             makeWinnerRed('X', firstPoint, secondPoint, isDiagonal);
             alert(`Победили Крестики! \nXXXXXXXXXXXXXXXX`);
@@ -98,6 +118,13 @@ function applyWinMessage(sum, firstPoint, secondPoint, isDiagonal = false) {
         }
 
         return true;
+    }
+    else if (!isBotMove && Math.abs(sum) === fieldSize - 1) {
+        if (sum > 0 && botPreset[0] === null
+            || sum < 0) {
+            findEmptyCell(firstPoint, secondPoint, isDiagonal);
+            console.log(`Bot preset = ${botPreset}`);
+        }
     }
 
     return false;
@@ -112,36 +139,40 @@ function makeWinnerRed(symbol, firstPoint, secondPoint, isDiagonal = false) {
     else for (let i = 0; i < fieldSize; i++) {
         renderSymbolInCell(symbol, i, firstPoint[1] === 0 ? i : fieldSize - i - 1, "red");
     }
-
 }
 
-function cellClickHandler(row, col) {
-    if (!gameIsOver) {
-        if (field[row][col] === 0) {
-            renderSymbolInCell(CROSS, row, col);
-            field[row][col] = 1;
-            cellsRemaining--;
-
-            console.log(`Clicked on cell: ${row}, ${col}`);
-
-            checkWinConditions();
-
-            if (!gameIsOver) {
-                makeBotMove();
-                checkWinConditions();
-            }
+function findEmptyCell(firstPoint, secondPoint, isDiagonal = false) {
+    if (!isDiagonal) {
+        for (let i = firstPoint[0]; i <= secondPoint[0]; i++)
+            for (let j = firstPoint[1]; j <= secondPoint[1]; j++)
+                if (field[i][j] === 0) {
+                    botPreset = [i, j];
+                    return;
+                }
+    }
+    else for (let i = 0; i < fieldSize; i++) {
+        j = firstPoint[1] === 0 ? i : fieldSize - i - 1;
+        if (field[i][j] === 0) {
+            botPreset = [i, j];
+            return;
         }
     }
 }
 
 function makeBotMove() {
-    let row = Math.floor(Math.random() * fieldSize);
-    let col = Math.floor(Math.random() * fieldSize);
+    row = botPreset[0];
+    col = botPreset[1];
 
-    while (field[row][col] != 0) {
+    if (botPreset[0] === null) {
         row = Math.floor(Math.random() * fieldSize);
         col = Math.floor(Math.random() * fieldSize);
+
+        while (field[row][col] != 0) {
+            row = Math.floor(Math.random() * fieldSize);
+            col = Math.floor(Math.random() * fieldSize);
+        }
     }
+    else botPreset = [null, null];
 
     renderSymbolInCell(ZERO, row, col);
     field[row][col] = -1;
