@@ -46,12 +46,44 @@ function createField(dimension) {
             field[i][j] = 0;
 }
 
+function createLargerField() {
+    fieldSize += 2;
+    newField = Array.from(Array(fieldSize), () => new Array(fieldSize));
+
+    for (let i = 0; i < fieldSize; i++)
+        for (let j = 0; j < fieldSize; j++)
+            newField[i][j] = 0;
+
+    for (let i = 1; i < fieldSize - 1; i++)
+        for (let j = 1; j < fieldSize - 1; j++)
+            newField[i][j] = field[i - 1][j - 1];
+
+    field = newField;
+    cellsRemaining += fieldSize ** 2 - (fieldSize - 2) ** 2;
+    renderGrid(fieldSize);
+    renderCells();
+}
+
+function renderCells() {
+    for (let i = 1; i < fieldSize - 1; i++)
+        for (let j = 1; j < fieldSize - 1; j++)
+            if (field[i][j] === -1)
+                renderSymbolInCell(ZERO, i, j);
+            else if (field[i][j] === 1)
+                renderSymbolInCell(CROSS, i, j);
+}
+
 function cellClickHandler(row, col) {
     if (!gameIsOver) {
         if (field[row][col] === 0) {
             renderSymbolInCell(CROSS, row, col);
             field[row][col] = 1;
             cellsRemaining--;
+
+            //comment this to disable field enlargement
+            if (cellsRemaining < fieldSize ** 2 / 2)
+                createLargerField();
+            //end of comment
 
             console.log(`Clicked on cell: ${row}, ${col}`);
 
