@@ -1,18 +1,18 @@
 const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
+let arrsize = prompt("Введите размерность масссива", 3);
 let usedCells=0;
 let isZero = false;
-let GridArray = [ [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY]];
+let GridArray =createArray();
 let IsWin= false;
-
 const container = document.getElementById('fieldWrapper');
 
 startGame();
 addResetListener();
 
 function startGame () {
-    renderGrid(3);
+    renderGrid(arrsize);
 }
 
 function renderGrid (dimension) {
@@ -30,8 +30,21 @@ function renderGrid (dimension) {
     }
 }
 
+function createArray(){
+    let arr=[];
+    let arr2=[];
+    for(let i=0;i<arrsize;i++){
+        for(let j=0;j<arrsize;j++){
+            arr2.push(EMPTY);
+        }
+        arr.push(arr2);
+        arr2=[];
+    }
+    return arr; 
+}
+
 function findWinner (){
-    for (let i = 0; i <= 2; i = i + 2)
+    for (let i = 0; i <= GridArray.length; i = i + 2)
 	{
 	    if((GridArray[0][0 + i] == GridArray[1][1]) && (GridArray[1][1] == GridArray[2][2- i])
             && ((GridArray[0][0 + i]==ZERO)|| GridArray[0][0 + i]==CROSS)){ 
@@ -43,7 +56,7 @@ function findWinner (){
             }
 	}
 
-	for (let i = 0; i < 3; i++)
+	for (let i = 0; i < 3; i++) 
 	{
 	    if(GridArray[i][0] == GridArray[i][1] && GridArray[i][1] == GridArray[i][ 2]
             && (GridArray[i][0]==ZERO|| GridArray[i][0]==CROSS)){
@@ -58,27 +71,32 @@ function findWinner (){
 	    if(GridArray[0][i] == GridArray[1][i] && GridArray[1][i] == GridArray[2][i] 
             && (GridArray[0][i]==ZERO||GridArray[0][i]==CROSS)){
                 renderSymbolInCell(GridArray[1][i], 1, i, '#f00');
-                renderSymbolInCell(GridArray[i][0], 2, i, '#f00');
-                renderSymbolInCell(GridArray[i][0], 0, i, '#f00');
+                renderSymbolInCell(GridArray[1][i], 2, i, '#f00');
+                renderSymbolInCell(GridArray[1][i], 0, i, '#f00');
                 IsWin= true;	
                 alert(`Выйграл игрок использующий ${GridArray[1][i]}`)
             }
 	}
+	}
 
 
-}
+
+
 
 function resetClickHandler () {
     console.log('reset!');
     IsWin=false;
     isZero=false;
     usedCells = 0;
-    GridArray =  [ [], [], []];
-    for(i=0;i<3;i++)
-        for(j=0;j<3;j++)
-        renderSymbolInCell(EMPTY, i, j);
+    arrsize= prompt("Введите размерность масссива", 3);
+    startGame();
+    GridArray = createArray();
+    for(i=0;i<GridArray.length;i++)
+        for(j=0;j<GridArray[0].length;j++)
+            renderSymbolInCell(EMPTY, i, j);
 
 }
+
 
 
 
@@ -87,7 +105,7 @@ function cellClickHandler (row, col) {
     // Пиши код тут
     console.log(`Clicked on cell: ${row}, ${col}`);
     if(!IsWin){
-    if(GridArray[row][col]!=ZERO||GridArray[row][col]!=CROSS){
+    if(GridArray[row][col]==EMPTY|| GridArray[row][col]==undefined){
         if (isZero){
             GridArray[row][col]=ZERO;
             usedCells++;
@@ -101,7 +119,7 @@ function cellClickHandler (row, col) {
             isZero = true;
         }
         findWinner();
-        if (usedCells==GridArray.length**2&&!IsWin)
+        if (usedCells==GridArray.length**2 && !IsWin)
             alert("Победила дружба")
         
     }
