@@ -80,7 +80,6 @@ class Game {
     isGameEnd = false;
     dimension = 3;
     turn = CROSS;
-    validators = [];
 
     controller;
     view;
@@ -90,13 +89,14 @@ class Game {
         this.view = view;
         controller.onCellClick = (i, j) => this.handleCellClick(i, j);
         controller.onReset = () => this.startGame();
-
-        this.validators = [
-            new IterWinnerChecker(this, rowSelector),
-            new IterWinnerChecker(this, columnSelector),
-            new StaticWinnerChecker(this, upDownDiagonalSelector),
-            new StaticWinnerChecker(this, createDownUpDiagonalSelector(this.dimension))
+        const wc = new WinnerChecker(this);
+        wc.methods = [
+            (x, y) => [y, columnSelector],
+            (x) => [x, rowSelector],
+            () => [0, upDownDiagonalSelector],
+            () => [0, createDownUpDiagonalSelector(this.dimension)]
         ];
+        this.winnerChecker = wc;
     }
 
     startGame() {
@@ -132,16 +132,16 @@ class Game {
     }
 
     handleCellClick(row, col) {
-        if (!this.canMakeTurn(row, col))
-            return;
         this.makeTurn(row, col);
         if (this.controller.isUseBot())
             this.makeBotTurn();
     }
 
     makeTurn(row, col) {
+        if (!this.canMakeTurn(row, col))
+            return;
         this.setTurn(row, col);
-        this.checkWinner();
+        this.checkWinner(row, col);
         this.checkDraw();
         this.swapTurn();
     }
@@ -156,20 +156,15 @@ class Game {
         view.renderSymbolInCell(this.turn, row, col);
     }
 
-    checkWinner() {
-        for (let i in this.validators) {
-            const winner = this.validators[i].check();
-            if (winner) {
-                this.announceWinner(...winner);
-                break;
-            }
-        }
+    checkWinner(row, col) {
+        const winner = this.winnerChecker.check(row, col);
+        if (winner)
+            this.announceWinner(...winner);
     }
-
 
     checkDraw() {
         if (this.freeCells.size === 0 && !this.isGameEnd) {
-            view.alert("Победила дружба");
+            this.view.alert("Победила дружба");
             this.isGameEnd = true;
         }
     }
@@ -199,6 +194,7 @@ class Game {
 
 class WinnerChecker {
     game;
+    methods = [];
 
     constructor(game) {
         this.game = game;
@@ -219,39 +215,14 @@ class WinnerChecker {
         return true;
     }
 
-    check() {
-    }
-}
-
-class IterWinnerChecker extends WinnerChecker {
-    selector;
-
-    constructor(game, selector) {
-        super(game);
-        this.selector = selector;
-    }
-
-    check() {
-        for (let i = 0; i < this.game.grid.length; i++) {
-            if (this.isLineWon(i, this.selector)) {
-                return [i, this.selector];
-            }
+    check(x, y) {
+        for (let method of this.methods) {
+            let [index, selector] = method(x, y);
+            if (this.isLineWon(index, selector))
+                return [index, selector];
         }
     }
 }
-
-class StaticWinnerChecker extends WinnerChecker {
-    constructor(game, selector) {
-        super(game);
-        this.selector = selector;
-    }
-
-    check() {
-        if (this.isLineWon(0, this.selector))
-            return [0, this.selector];
-    }
-}
-
 
 class View {
     container = document.getElementById('fieldWrapper');
@@ -305,6 +276,8 @@ class View {
 function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
+
+
 
 const controller = new Controller();
 const view = new View(controller);
