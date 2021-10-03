@@ -7,8 +7,10 @@ body {
     margin: 40px auto;
     /*display: inline-block;*/
     width: auto;
-    background-color: lightgoldenrodyellow;
+    background-color: rgb(238, 249, 255);
     padding: 10px;
+    border: 3px solid rgb(63, 22, 117);
+    border-radius: 10px;
 }
 
 .table {
@@ -20,9 +22,9 @@ body {
     height: 28px;
     padding: 20px;
     font-size: 24px;
-    font-family: "Consolas", monospace;
+    font-family: "Fira Mono", monospace;
     text-align: center;
-    border: 1px solid #333;
+    border: 2px solid rgb(63, 22, 117);
     cursor: pointer;
 }
 
@@ -44,10 +46,10 @@ body {
 
 .resetButton {
     display: block;
-    margin: 20px auto;
-    padding: 10px;
-    background: none;
-    font-size: 16px;
-    border: 3px solid orange;
-    border-radius: 5px;
+    margin: 10px auto;
+    padding: 15px;
+    background: rgb(252, 242, 247);
+    font-size: 17px;
+    border: 2px solid rgb(184, 24, 104);
+    border-radius: 1000px;
 }
