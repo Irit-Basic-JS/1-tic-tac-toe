@@ -2,6 +2,8 @@ const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
 
+let isCross = true;
+
 const container = document.getElementById('fieldWrapper');
 
 startGame();
@@ -14,20 +16,29 @@ function startGame () {
 function renderGrid (dimension) {
     container.innerHTML = '';
 
+    let countClick = 0; 
+
     for (let i = 0; i < dimension; i++) {
         const row = document.createElement('tr');
         for (let j = 0; j < dimension; j++) {
             const cell = document.createElement('td');
             cell.textContent = EMPTY;
             cell.addEventListener('click', () => cellClickHandler(i, j));
+
+
+
             row.appendChild(cell);
         }
         container.appendChild(row);
     }
 }
 
+
+
+
 function cellClickHandler (row, col) {
     // Пиши код тут
+    move(CROSS, row, col)
     console.log(`Clicked on cell: ${row}, ${col}`);
 
 
@@ -35,6 +46,22 @@ function cellClickHandler (row, col) {
         renderSymbolInCell(ZERO, row, col);
      */
 }
+
+function move(simbol, row, col){
+    if (isCross){
+        renderSymbolInCell(CROSS, row, col);
+        isCross=false;
+    }
+    else{
+        renderSymbolInCell(ZERO, row, col);
+        isCross = true;
+    }
+    
+}
+
+
+
+
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
     const targetCell = findCell(row, col);
