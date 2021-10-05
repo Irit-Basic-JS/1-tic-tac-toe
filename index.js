@@ -47,7 +47,11 @@ function renderGrid (dimension) {
 }
 
 function cellClickHandler (row, col) {
+    if (field[row][col] != EMPTY || isGameOver) {
+        return;
+    }
     cellClick(row, col);
+    botTurn();
 }
 
 function cellClick (row, col) {
@@ -170,11 +174,11 @@ function resetClickHandler () {
 }
 
 function botTurn() {
-    while(true){
+    while(!isGameOver){
         x = Math.floor(Math.random() * dimension);
         y = Math.floor(Math.random() * dimension);
         if (field[x][y] == EMPTY) {
-            clickOnCell(x, y);
+            cellClick(x, y);
             break;
         }
     }
