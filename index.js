@@ -128,16 +128,6 @@ function checkLanes(simbol, arrayClick, sizeArray=3){
     return false;
 }
 
-
-
-
-
-
-
-
-
-
-
 function renderSymbolInCell (symbol, row, col, color = '#333') {
     const targetCell = findCell(row, col);
 
