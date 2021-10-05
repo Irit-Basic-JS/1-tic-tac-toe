@@ -1,8 +1,12 @@
 const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
+let countClick = 0; 
 
-let isCross = true;
+let isCross = true;  //для чередования
+let arrayClick = []
+createArray();
+
 
 const container = document.getElementById('fieldWrapper');
 
@@ -16,7 +20,7 @@ function startGame () {
 function renderGrid (dimension) {
     container.innerHTML = '';
 
-    let countClick = 0; 
+    
 
     for (let i = 0; i < dimension; i++) {
         const row = document.createElement('tr');
@@ -36,9 +40,12 @@ function renderGrid (dimension) {
 
 
 
+
 function cellClickHandler (row, col) {
     // Пиши код тут
+    
     move(CROSS, row, col)
+
     console.log(`Clicked on cell: ${row}, ${col}`);
 
 
@@ -47,17 +54,85 @@ function cellClickHandler (row, col) {
      */
 }
 
+
 function move(simbol, row, col){
-    if (isCross){
-        renderSymbolInCell(CROSS, row, col);
-        isCross=false;
+    if(arrayClick[col][row] === " "){
+        if (isCross){
+            renderSymbolInCell(CROSS, row, col);
+            addSimbolInArray(CROSS, row, col);
+            isCross=false;
+            //check
+            checked(CROSS, arrayClick);
+
+        }
+        else{
+            renderSymbolInCell(ZERO, row, col);
+            addSimbolInArray(ZERO, row, col);
+            isCross = true;
+            //check
+            checked(ZERO, arrayClick)
+        }
     }
-    else{
-        renderSymbolInCell(ZERO, row, col);
-        isCross = true;
-    }
-    
 }
+
+
+function createArray(sizeArray = 3){
+    for(let i = 0; i < sizeArray; i++){
+        arrayClick[i] = []
+    }
+    for(let i = 0; i < sizeArray; i++){
+        for(let j = 0; j < sizeArray; j++){
+          arrayClick[i][j] = ' ';
+        }
+    }
+}
+
+function addSimbolInArray(simbol, row, col){
+    arrayClick[col][row] = simbol;
+}
+
+function checked(simbol, arrayClick, sizeArray=3){
+    countClick++;
+    let diagonal = checkDiagonal(simbol, arrayClick, sizeArray=3);
+    let lines = checkLanes(simbol, arrayClick, sizeArray=3);
+    
+    if (diagonal || lines) alert(`Winning for ${simbol}`);
+    if(countClick === sizeArray**2) alert('Победила дружба!');
+}
+
+function checkDiagonal(simbol, arrayClick, sizeArray=3){
+    let toRight = true;
+    let toLeft = true;
+    for(let i=0; i<sizeArray; i++){
+        toRight = toRight && (arrayClick[i][i] === simbol);
+        toLeft = toLeft && (arrayClick[i][i] === simbol);
+    }
+
+    if (toLeft || toRight) return true;
+    return false;
+}
+
+function checkLanes(simbol, arrayClick, sizeArray=3){
+    let cols = true;
+    let rows = true;
+    for(let i=0; i<sizeArray; i++){
+        cols = true;
+        rows = true;
+        for(let j=0; j<sizeArray; j++){
+            cols = cols && (arrayClick[i][j] === simbol);
+            rows = rows && (arrayClick[j][i] === simbol);
+        }
+        if(cols || rows) return true
+    }
+
+    return false;
+}
+
+
+
+
+
+
 
 
 
