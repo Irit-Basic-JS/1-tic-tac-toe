@@ -21,11 +21,23 @@ let field = [[], [], []];
 
 let isGameOver = false;
 
+fillField();
+setInterface();
 startGame();
 addResetListener();
 
 function startGame () {
     renderGrid(fieldSize);
+}
+
+function fillField(){
+    for (let i = 0; i < fieldSize; i++)
+        field.push([]);
+}
+
+function setInterface(){
+    createInputField();
+    createRandomTurnButton();
 }
 
 function renderGrid (dimension) {
@@ -63,6 +75,8 @@ function cellClickHandler (row, col) {
      */
 }
 
+
+
 function renderSymbolInCell (symbol, row, col, color = '#333') {
     const targetCell = findCell(row, col);
 
@@ -90,10 +104,11 @@ function resetClickHandler () {
         for (let j = 0; j < fieldSize; j++){
             renderSymbolInCell(EMPTY, i, j);
         } 
-        field.push([]);
     }
+    fillField();
     isGameOver = false;
     turnsCount = 0;
+    turn = CROSS;
 }
 
 function checkWinner(row, col){
@@ -151,6 +166,37 @@ function checkDraw(){
         alert("Победила дружба");
         isGameOver = true;
         return;
+    }
+}
+
+function createInputField(){
+    let inputField = document.createElement('input');
+    let header = document.querySelector('h1');
+    inputField.setAttribute('type', 'text');
+    header.appendChild(inputField);
+    inputField.onchange = function(){
+        fieldSize = parseFloat(inputField.value);
+        renderGrid(fieldSize);
+        resetClickHandler();
+    }
+}
+
+function createRandomTurnButton(){
+    let button = document.createElement('button');
+    button.style.width = '100px';
+    button.style.height = '40px';
+    let header = document.querySelector('h2');
+    header.appendChild(button);
+
+    button.onclick = function(){
+        while(true){
+            let rowRandom = Math.floor(Math.random() * fieldSize);
+            let colRandom = Math.floor(Math.random() * fieldSize);
+            if (field[rowRandom][colRandom] === undefined){
+                clickOnCell(rowRandom, colRandom);
+                break;
+            }
+        }
     }
 }
 
