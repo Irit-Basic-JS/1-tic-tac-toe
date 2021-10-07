@@ -11,6 +11,7 @@ function startGame () {
     renderGrid(3);
 }
 
+
 function renderGrid (dimension) {
     container.innerHTML = '';
 
@@ -26,15 +27,54 @@ function renderGrid (dimension) {
     }
 }
 
+
+let arrayOfCells=[
+    [EMPTY, EMPTY, EMPTY],
+    [EMPTY, EMPTY, EMPTY],
+    [EMPTY, EMPTY, EMPTY]
+];
+
+let winner = '';
+let ifCrossExists = false;
+let sym = EMPTY;
+let ifTurnsAreOver = false;
+
+
 function cellClickHandler (row, col) {
     // Пиши код тут
     console.log(`Clicked on cell: ${row}, ${col}`);
+    
+    if (ifCrossExists == true){
+        sym = ZERO;
+        ifCrossExists = false;
+    }
+    else {
+        sym = CROSS;
+        ifCrossExists = true;
+    }
+    
+    if (arrayOfCells[row][col] == EMPTY) {
+        arrayOfCells[row][col] = sym;
+        renderSymbolInCell(sym, row, col);
+    }
 
+    //если не было победителя
+    for(let i = 0; i < arrayOfCells.length; i++) {
+        for(let j = 0; j < arrayOfCells.length; j++) {
+            if (arrayOfCells[i][j] != EMPTY){
+                ifTurnsAreOver = true;
+            }
+            else {
+                ifTurnsAreOver = false;
+            }
+        }
+    }
 
-    /* Пользоваться методом для размещения символа в клетке так:
-        renderSymbolInCell(ZERO, row, col);
-     */
+    if (ifTurnsAreOver){
+        alert("Победила дружба");
+    }
 }
+
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
     const targetCell = findCell(row, col);
@@ -55,6 +95,8 @@ function addResetListener () {
 
 function resetClickHandler () {
     console.log('reset!');
+    ifTurnsAreOver = false;
+    startGame();
 }
 
 
