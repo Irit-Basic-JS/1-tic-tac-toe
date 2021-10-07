@@ -8,12 +8,14 @@ const container = document.getElementById('fieldWrapper');
 
 let field;
 let currentSymbol;
-let isGameOver;
 let winner;
 let ai;
+let successfulMovesCount;
 
-function Cell(symbol, x, y) {
-    this.symbol = symbol;
+const isGameOver = () => winner || successfulMovesCount === field.size * field.size;
+
+function Cell(content, x, y) {
+    this.content = content;
     this.x = x;
     this.y = y;
 }
@@ -21,7 +23,17 @@ function Cell(symbol, x, y) {
 function Field(size) {
     this.source = [];
     this.size = size;
-    this.count = 0;
+
+    this.init = function () {
+        for (let row = 0; row < this.size; row++) {
+            this.source.push([]);
+            for (let col = 0; col < this.size; col++) {
+                this.source[row].push(null);
+            }
+        }
+    };
+
+    this.init();
 
     this.getRow = function (index) {
         return this.source[index];
@@ -60,12 +72,12 @@ function AI() {
     this.makeSimpleMove = function () {
         let emptyCells = getEmptyCells();
         let selectedCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-        tryMakeMove(selectedCell.x, selectedCell.y);
+        clickOnCell(selectedCell.x, selectedCell.y);
     }
 
     function getEmptyCells() {
         let emptyCells = [];
-        field.source.forEach(row => emptyCells.push(...row.filter(cell => cell.symbol === EMPTY)));
+        field.source.forEach(row => emptyCells.push(...row.filter(cell => cell.content === EMPTY)));
         return emptyCells;
     }
 }
@@ -79,16 +91,15 @@ function startGame() {
     createField(dimension);
     ai = new AI();
     currentSymbol = CROSS;
-    isGameOver = false;
     winner = null;
+    successfulMovesCount = 0;
     renderGrid(dimension);
 }
 
 function createField(dimension) {
     field = new Field(dimension);
-    for (let row = 0; row < dimension; row++) {
-        field.source[row] = [];
-        for (let col = 0; col < dimension; col++) {
+    for (let row = 0; row < field.size; row++) {
+        for (let col = 0; col < field.size; col++) {
             field.source[row][col] = new Cell(EMPTY, row, col);
         }
     }
@@ -101,7 +112,7 @@ function renderGrid(dimension) {
         const row = document.createElement('tr');
         for (let colIndex = 0; colIndex < dimension; colIndex++) {
             const cell = document.createElement('td');
-            cell.textContent = field.source[rowIndex][colIndex].symbol;
+            cell.textContent = field.source[rowIndex][colIndex].content;
             cell.addEventListener('click', () => cellClickHandler(rowIndex, colIndex));
             row.appendChild(cell);
         }
@@ -110,41 +121,47 @@ function renderGrid(dimension) {
 }
 
 function updateGame(row, col) {
-    if (isGameOver) {
+    if (isGameOver()) {
         return;
     }
 
-    field.source[row][col].symbol = currentSymbol;
-    field.count++;
+    field.source[row][col].content = currentSymbol;
     renderSymbolInCell(currentSymbol, row, col);
 
-    if (field.count === field.size * field.size) {
-        isGameOver = true;
-    }
-
-    if (tryFindWinner(row, col) || isGameOver) {
+    if (tryFindWinner(row, col) || isGameOver()) {
+        winner = currentSymbol;
         announceWinner();
     }
 
     switchCurrentSymbol();
+    successfulMovesCount++;
 }
 
 function tryFindWinner(rowIndex, colIndex) {
-    let symbol = field.source[rowIndex][colIndex].symbol;
-    return isWinningLine(field.getRow(rowIndex), symbol)
-        || isWinningLine(field.getColumn(colIndex), symbol)
-        || field.getDiagonal(rowIndex, colIndex).some(diagonal => isWinningLine(diagonal, symbol));
-}
+    let symbol = field.source[rowIndex][colIndex].content;
+    let winningLine = findWinningLine(symbol,
+        field.getRow(rowIndex),
+        field.getColumn(colIndex),
+        ...field.getDiagonal(rowIndex, colIndex));
 
-function isWinningLine(cells, symbol) {
-    if (cells.every(cell => cell.symbol === symbol)) {
-        isGameOver = true;
-        winner = symbol;
-        paintCells(cells, RED);
+    if (winningLine) {
+        paintCells(winningLine, RED);
         return true;
     }
 
     return false;
+}
+
+function findWinningLine(symbol, ...lines) {
+    let winningLine;
+    for (let line of lines) {
+        if (line.every(cell => cell.content === symbol)) {
+            winningLine = line;
+            break;
+        }
+    }
+
+    return winningLine;
 }
 
 function paintCells(cellsInfo, color) {
@@ -166,21 +183,20 @@ function announceWinner() {
 }
 
 function cellClickHandler(row, col) {
-    if (tryMakeMove(row, col)) {
+    tryMakeMove(row, col);
+    if (successfulMovesCount % 2 !== 0) {
         ai.makeSimpleMove();
     }
 }
 
 function tryMakeMove(row, col) {
-    if (isGameOver || field.source[row][col].symbol !== EMPTY) {
-        return false;
+    if (isGameOver() || field.source[row][col].content !== EMPTY) {
+        return;
     }
 
     console.log(`Clicked on cell: ${row}, ${col}`);
 
     updateGame(row, col);
-
-    return true;
 }
 
 function switchCurrentSymbol() {
@@ -205,6 +221,7 @@ function addResetListener() {
 }
 
 function resetClickHandler() {
+    console.log('reset!');
     startGame();
 }
 
