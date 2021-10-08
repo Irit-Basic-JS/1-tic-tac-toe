@@ -11,11 +11,6 @@ let win = false;
 let arrayClick = [];
 createArray(sizeArray);
 let winLine = [];
-let winLineCol = [];
-let winLineRow = [];
-
-
-
 
 const container = document.getElementById('fieldWrapper');
 
@@ -29,17 +24,12 @@ function startGame () {
 function renderGrid (dimension) {
     container.innerHTML = '';
 
-    
-
     for (let i = 0; i < dimension; i++) {
         const row = document.createElement('tr');
         for (let j = 0; j < dimension; j++) {
             const cell = document.createElement('td');
             cell.textContent = EMPTY;
             cell.addEventListener('click', () => cellClickHandler(i, j));
-
-
-
             row.appendChild(cell);
         }
         container.appendChild(row);
@@ -52,9 +42,7 @@ function renderGrid (dimension) {
 
 function cellClickHandler (row, col) {
     // Пиши код тут
-    
     move(CROSS, row, col, sizeArray)
-
     console.log(`Clicked on cell: ${row}, ${col}`);
 
 
@@ -141,7 +129,6 @@ function checkLines(symbol, arrayClick, sizeArray){
         }
         if(cols || rows) {return true}
     }
-
     return false;
 }
 
@@ -151,12 +138,10 @@ function colorSymbolsWinLines(symbol, arrayClick, sizeArray){
     let testRow = [];
 
     for(let s in arrayClick){
-        testCol.push(arrayClick[s].join(''))
-        let str =''
-        for(let j=0; j<sizeArray; j++){
-            str += arrayClick[j][s]
-        }
-        testRow.push(str)
+        testCol.push(arrayClick[s].join(''));
+        let str ='';
+        for(let j=0; j<sizeArray; j++){str += arrayClick[j][s]};
+        testRow.push(str);
     }
 
     if(testRow.indexOf(winSymbolCross) !== -1) {
@@ -180,15 +165,6 @@ function colorSymbolsWinDiag(symbol, winLine, direction, sizeArray){
         if (direction === 'right') renderSymbolInCell (symbol, item, item, color = '#f00');
     }
 }
-
-
-
-
-
-
-
-
-
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
     const targetCell = findCell(row, col);
@@ -217,8 +193,6 @@ function resetClickHandler () {
         for(j=0;j<sizeArray;j++)
             renderSymbolInCell(EMPTY, i, j);
 }
-
-
 /* Test Function */
 /* Победа первого игрока */
 function testWin () {
@@ -230,7 +204,6 @@ function testWin () {
     clickOnCell(1, 2);
     clickOnCell(2, 1);
 }
-
 /* Ничья */
 function testDraw () {
     clickOnCell(2, 0);
