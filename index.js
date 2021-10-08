@@ -2,14 +2,14 @@ const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
 let countClick = 0;
-sizeArray = 3;
+let sizeArray = prompt("Введите размерность масссива", 3);
 let winSymbolCross = CROSS.repeat(sizeArray);
 let winSymbolZero = ZERO.repeat(sizeArray);
 
 let isCross = true;  //для чередования
 let win = false;
 let arrayClick = [];
-createArray();
+createArray(sizeArray);
 let winLine = [];
 let winLineCol = [];
 let winLineRow = [];
@@ -23,7 +23,7 @@ startGame();
 addResetListener();
 
 function startGame () {
-    renderGrid(3);
+    renderGrid(sizeArray);
 }
 
 function renderGrid (dimension) {
@@ -53,7 +53,7 @@ function renderGrid (dimension) {
 function cellClickHandler (row, col) {
     // Пиши код тут
     
-    move(CROSS, row, col)
+    move(CROSS, row, col, sizeArray)
 
     console.log(`Clicked on cell: ${row}, ${col}`);
 
@@ -64,25 +64,25 @@ function cellClickHandler (row, col) {
 }
 
 
-function move(symbol, row, col){
+function move(symbol, row, col, sizeArray){
     if(arrayClick[col][row] === " " && !win){
         if (isCross){
             renderSymbolInCell(CROSS, row, col);
             addSimbolInArray(CROSS, row, col);
             isCross=false;
-            checked(CROSS, arrayClick);
+            checked(CROSS, arrayClick, sizeArray);
         }
         else{
             renderSymbolInCell(ZERO, row, col);
             addSimbolInArray(ZERO, row, col);
             isCross = true;
-            checked(ZERO, arrayClick)
+            checked(ZERO, arrayClick, sizeArray)
         }
     }
 }
 
 
-function createArray(sizeArray = 3){
+function createArray(sizeArray){
     for(let i = 0; i < sizeArray; i++){
         arrayClick[i] = []
     }
@@ -97,20 +97,20 @@ function addSimbolInArray(symbol, row, col){
     arrayClick[col][row] = symbol;
 }
 
-function checked(symbol, arrayClick, sizeArray=3){
+function checked(symbol, arrayClick, sizeArray){
     countClick++;
-    let diagonal = checkDiagonal(symbol, arrayClick, sizeArray=3);
-    let lines = checkLines(symbol, arrayClick, sizeArray=3);
+    let diagonal = checkDiagonal(symbol, arrayClick, sizeArray);
+    let lines = checkLines(symbol, arrayClick, sizeArray);
     
     if (diagonal || lines) {
-        colorSymbolsWinLines(symbol, arrayClick, sizeArray=3)
+        colorSymbolsWinLines(symbol, arrayClick, sizeArray)
         win = true; 
         alert(`Winning for ${symbol}`);
     }
     if(countClick === sizeArray**2 && win === false) alert('Победила дружба!');
 }
 
-function checkDiagonal(symbol, arrayClick, sizeArray=3){
+function checkDiagonal(symbol, arrayClick, sizeArray){
     let toRight = true;
     let toLeft = true;
     for(let i=0; i<sizeArray; i++){
@@ -119,19 +119,19 @@ function checkDiagonal(symbol, arrayClick, sizeArray=3){
         
         if(toLeft && winLine.indexOf(i)===-1){
             winLine.push(i);
-            if(winLine.length === 3) colorSymbolsWinDiag(symbol, winLine, direction = 'left');
+            if(winLine.length === 3) colorSymbolsWinDiag(symbol, winLine, direction = 'left', sizeArray);
         }
 
         if(toRight && winLine.indexOf(i)===-1){
             winLine.push(i);
-            if(winLine.length === 3) colorSymbolsWinDiag(symbol, winLine, direction = 'right');
+            if(winLine.length === 3) colorSymbolsWinDiag(symbol, winLine, direction = 'right', sizeArray);
         }
     }
     if (toLeft || toRight) return true;
     return false;
 }
 
-function checkLines(symbol, arrayClick, sizeArray=3){
+function checkLines(symbol, arrayClick, sizeArray){
     for(let i=0; i<sizeArray; i++){
         cols = true;
         rows = true;
@@ -146,7 +146,7 @@ function checkLines(symbol, arrayClick, sizeArray=3){
 }
 
 //покрас победных значений в линиях в красный
-function colorSymbolsWinLines(symbol, arrayClick, sizeArray=3){
+function colorSymbolsWinLines(symbol, arrayClick, sizeArray){
     let testCol = [];
     let testRow = [];
 
@@ -174,7 +174,7 @@ function colorSymbolsWinLines(symbol, arrayClick, sizeArray=3){
 
 }
 //покрас победных значений в диагоналях в красный
-function colorSymbolsWinDiag(symbol, winLine, direction, sizeArray=3){
+function colorSymbolsWinDiag(symbol, winLine, direction, sizeArray){
     for(let item in winLine){
         if (direction === 'left') renderSymbolInCell (symbol, sizeArray-item-1, item, color = '#f00');
         if (direction === 'right') renderSymbolInCell (symbol, item, item, color = '#f00');
@@ -209,6 +209,10 @@ function addResetListener () {
 
 function resetClickHandler () {
     console.log('reset!');
+    win = false;
+    sizeArray = prompt("Введите размерность масссива", 3);
+    startGame();
+    createArray(sizeArray)
     for(i=0;i<sizeArray;i++)
         for(j=0;j<sizeArray;j++)
             renderSymbolInCell(EMPTY, i, j);
