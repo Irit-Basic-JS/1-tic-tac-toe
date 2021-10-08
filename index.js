@@ -6,9 +6,9 @@ let sizeArray = prompt("Введите размерность масссива",
 let winSymbolCross = CROSS.repeat(sizeArray);
 let winSymbolZero = ZERO.repeat(sizeArray);
 
-let isCross = true;  //для чередования
+let isCross = true;                                             //для чередования
 let win = false;
-let arrayClick = []; //хранение кода
+let arrayClick = [];                                            //хранение кода
 createArray(sizeArray);
 let winLine = [];
 
@@ -36,24 +36,14 @@ function renderGrid (dimension) {
     }
 }
 
-
-
-
-
 function cellClickHandler (row, col) {
     // Пиши код тут
     move(row, col, sizeArray)
     console.log(`Clicked on cell: ${row}, ${col}`);
-
-
-    /* Пользоваться методом для размещения символа в клетке так:
-        renderSymbolInCell(ZERO, row, col);
-     */
 }
 
-
 function move(row, col, sizeArray){
-    if(arrayClick[col][row] === " " && !win){ //если поле пустое и никто еще не выйграл, то допускается ход
+    if(arrayClick[col][row] === " " && !win){               //если поле пустое и никто еще не выйграл, то допускается ход
         if (isCross){
             renderSymbolInCell(CROSS, row, col);
             addSimbolInArray(CROSS, row, col);
@@ -93,7 +83,7 @@ function checked(symbol, arrayClick, sizeArray){
     if (diagonal || lines) {
         colorSymbolsWinLines(symbol, arrayClick, sizeArray)
         win = true; 
-        alert(`Winning for ${symbol}`); //выйгрыш за ...
+        alert(`Winning for ${symbol}`);                                         //выйгрыш за ...
     }
     if(countClick === sizeArray**2 && win === false) alert('Победила дружба!'); //если все поля заполнены
 }
