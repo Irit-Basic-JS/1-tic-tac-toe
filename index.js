@@ -1,17 +1,24 @@
 const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
-
 const container = document.getElementById('fieldWrapper');
+let map;
+let flag;
+let startPos;
+let dimension;
+let count;
+let fieldArr = [];
+let gameOver = false;
+let sizeField = 3;
 
 startGame();
 addResetListener();
 
-function startGame () {
+function startGame() {
     renderGrid(3);
 }
 
-function renderGrid (dimension) {
+function renderGrid(dimension) {
     container.innerHTML = '';
 
     for (let i = 0; i < dimension; i++) {
@@ -26,15 +33,58 @@ function renderGrid (dimension) {
     }
 }
 
+
 function cellClickHandler (row, col) {
-    // Пиши код тут
-    console.log(`Clicked on cell: ${row}, ${col}`);
 
-
-    /* Пользоваться методом для размещения символа в клетке так:
-        renderSymbolInCell(ZERO, row, col);
-     */
+    if (!(map.has(`${row}${col}`) || flag)) {
+        startPos = (startPos + 1) % 2;
+        let symbol = startPos === 0 ? CROSS : ZERO;
+        map.set(`${row}${col}`, symbol);
+        renderSymbolInCell(symbol, row, col);
+        //count++;
+        flag = map.size === dimension ** 2;
+        if (checkWin(symbol, row, col)) {
+            alert(`${symbol} WIN`);
+            flag = true;
+        } else if (flag) {
+            alert("Победила дружба");
+        }
+        console.log(`Clicked on cell: ${row}, ${col}`);
+    }
 }
+
+function checkWin (symbol, row, col) {
+    for (let i = 0; i < dimension; i++) {
+        if (map.get(`${i}${col}`) !== symbol) break;
+        if (i === dimension - 1) {
+            for (let x = 0; x < dimension; x++) renderSymbolInCell(symbol, x, col, '#FF0000');
+            return true;
+        }
+    }
+    for (let j = 0; j < dimension; j++) {
+        if (map.get(`${row}${j}`) !== symbol) break;
+        if (j === dimension - 1) {
+            for (let x = 0; x < dimension; x++) renderSymbolInCell(symbol, row, x, '#FF0000');
+            return true;
+        }
+    }
+    for (let ij = 0; ij < dimension; ij++) {
+        if (map.get(`${ij}${ij}`) !== symbol) break;
+        if (ij === dimension - 1) {
+            for (let x = 0; x < dimension; x++) renderSymbolInCell(symbol, x, x, '#ff0000');
+            return true;
+        }
+    }
+    for (let ij = 0; ij < dimension; ij++) {
+        if (map.get(`${dimension - ij - 1}${ij}`) !== symbol) break;
+        if (ij === dimension - 1) {
+            for (let x = 0; x < dimension; x++) renderSymbolInCell(symbol, dimension - 1 - x, x, '#FF0000');
+            return true;
+        }
+    }
+    return false
+}
+
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
     const targetCell = findCell(row, col);
@@ -54,9 +104,9 @@ function addResetListener () {
 }
 
 function resetClickHandler () {
+    startGame();
     console.log('reset!');
 }
-
 
 /* Test Function */
 /* Победа первого игрока */
