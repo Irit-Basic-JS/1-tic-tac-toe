@@ -4,16 +4,27 @@ const EMPTY = ' ';
 
 const container = document.getElementById('fieldWrapper');
 
+let turnCheck = 0;
+
+let board = new Array();
+
+let dimension = 3;
+
+let winner = EMPTY;
+
+let hasWinSequence = false;
+
 startGame();
 addResetListener();
 
-function startGame () {
-    renderGrid(3);
+function startGame() {
+    renderGrid(dimension);
 }
 
 function renderGrid (dimension) {
     container.innerHTML = '';
 
+    BoardGenerator(dimension);
     for (let i = 0; i < dimension; i++) {
         const row = document.createElement('tr');
         for (let j = 0; j < dimension; j++) {
@@ -27,13 +38,25 @@ function renderGrid (dimension) {
 }
 
 function cellClickHandler (row, col) {
-    // Пиши код тут
+    if(board[row][col] === EMPTY && !hasWinSequence)
+        (turnCheck % 2 === 0) ? TurnChecker(ZERO, row, col) : 
+            TurnChecker(CROSS, row, col);
     console.log(`Clicked on cell: ${row}, ${col}`);
+}
 
+function TurnChecker(symbol, row, col){
+    board[row][col] = symbol;
+    renderSymbolInCell(symbol, row, col);
+    turnCheck++;
+    CheckWinner();
+}
 
-    /* Пользоваться методом для размещения символа в клетке так:
-        renderSymbolInCell(ZERO, row, col);
-     */
+function BoardGenerator(dimension){
+    for(let i = 0; i < dimension; i++){
+      board[i] = new Array();
+      for(let j = 0; j < dimension; j++)
+        board[i][j] = EMPTY;
+  }
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
@@ -54,36 +77,100 @@ function addResetListener () {
 }
 
 function resetClickHandler () {
+    turnCheck = 0;
+    for(let i = 0; i < dimension; i++)
+        for(let j = 0; j < dimension; j++){
+            let targetCell = findCell(i, j);
+            targetCell.textContent = EMPTY;
+            board[i][j] = EMPTY;
+            hasWinSequence = false;
+            winner = EMPTY;
+        }
     console.log('reset!');
 }
 
+function CheckWinner(){
+    CheckVertical();
+    CheckHorizontal();
+    CheckLeftDiag();
+    CheckRightDiag();
 
-/* Test Function */
-/* Победа первого игрока */
-function testWin () {
-    clickOnCell(0, 2);
-    clickOnCell(0, 0);
-    clickOnCell(2, 0);
-    clickOnCell(1, 1);
-    clickOnCell(2, 2);
-    clickOnCell(1, 2);
-    clickOnCell(2, 1);
+    if(hasWinSequence)
+        alert('Победитель ' + winner);
+    if(turnCheck === 9 && !hasWinSequence)
+        alert("Победила дружба");
 }
 
-/* Ничья */
-function testDraw () {
-    clickOnCell(2, 0);
-    clickOnCell(1, 0);
-    clickOnCell(1, 1);
-    clickOnCell(0, 0);
-    clickOnCell(1, 2);
-    clickOnCell(1, 2);
-    clickOnCell(0, 2);
-    clickOnCell(0, 1);
-    clickOnCell(2, 1);
-    clickOnCell(2, 2);
+function CheckVertical(){
+    for(let j = 0; j < 3; j++){
+        let checker = 0;
+        let symbol = board[0][j];
+        for(let i = 0; i < 3; i++){
+            if(symbol != EMPTY && board[i][j] === symbol)
+            checker++;
+        }
+        if(checker === 3){
+            hasWinSequence = true;
+            winner = symbol;
+            for(let i = 0; i < 3; i++){
+                let targetCell = findCell(i, j);
+                targetCell.style.color = "red"; 
+            }
+            break;
+        }
+    }
 }
 
-function clickOnCell (row, col) {
-    findCell(row, col).click();
+function CheckHorizontal(){
+    for(let i = 0; i < 3; i++){
+        let checker = 0;
+        let symbol = board[i][0];
+        for(let j = 0; j < 3; j++){
+            if(symbol != EMPTY && board[i][j] === symbol)
+            checker++;
+        }
+        if(checker === 3){
+            hasWinSequence = true;
+            winner = symbol;
+            for(let j = 0; j < 3; j++){
+                let targetCell = findCell(i, j);
+                targetCell.style.color = "red";
+            }
+            break;
+        }
+    }
+}
+
+function CheckLeftDiag(){
+    let checker = 0;
+    let symbol = board[0][0];
+    for(let n = 0; n < 3; n++){
+        if(symbol != EMPTY && board[n][n] === symbol)
+            checker++;
+    }
+    if(checker === 3){
+        hasWinSequence = true;
+        winner = symbol;
+        for(let n = 0; n < 3; n++){
+            let targetCell = findCell(n, n);
+            targetCell.style.color = "red";
+        }
+    }
+}
+
+function CheckRightDiag(){
+    let checker = 0;
+    let symbol = board[0][2];
+    for(let i = 0; i < 3; i++){
+        if(symbol != EMPTY && board[i][2 - i] === symbol)
+        checker++;
+    }
+    if(checker === 3){
+        hasWinSequence = true;
+        winner = symbol;
+        for(let i = 0; i < 3; i++){
+            let targetCell = findCell(i, 2 - i);
+            targetCell.style.color = "red";
+        }
+    }  
 }
