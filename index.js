@@ -1,14 +1,18 @@
 const CROSS = 'X';
 const ZERO = 'O';
 const EMPTY = ' ';
-let countClick = 0; 
+let countClick = 0;
+sizeArray = 3;
+let winSymbolCross = CROSS.repeat(sizeArray);
+let winSymbolZero = ZERO.repeat(sizeArray);
 
 let isCross = true;  //для чередования
-let arrayClick = []
+let win = false;
+let arrayClick = [];
 createArray();
-let winLine = []
-let winLineCol = []
-let winLineRow = []
+let winLine = [];
+let winLineCol = [];
+let winLineRow = [];
 
 
 
@@ -61,7 +65,7 @@ function cellClickHandler (row, col) {
 
 
 function move(symbol, row, col){
-    if(arrayClick[col][row] === " "){
+    if(arrayClick[col][row] === " " && !win){
         if (isCross){
             renderSymbolInCell(CROSS, row, col);
             addSimbolInArray(CROSS, row, col);
@@ -96,10 +100,14 @@ function addSimbolInArray(symbol, row, col){
 function checked(symbol, arrayClick, sizeArray=3){
     countClick++;
     let diagonal = checkDiagonal(symbol, arrayClick, sizeArray=3);
-    let lines = checkLanes(symbol, arrayClick, sizeArray=3);
+    let lines = checkLines(symbol, arrayClick, sizeArray=3);
     
-    if (diagonal || lines) alert(`Winning for ${symbol}`);
-    if(countClick === sizeArray**2) alert('Победила дружба!');
+    if (diagonal || lines) {
+        colorSymbolsWinLines(symbol, arrayClick, sizeArray=3)
+        win = true; 
+        alert(`Winning for ${symbol}`);
+    }
+    if(countClick === sizeArray**2 && win === false) alert('Победила дружба!');
 }
 
 function checkDiagonal(symbol, arrayClick, sizeArray=3){
@@ -111,50 +119,65 @@ function checkDiagonal(symbol, arrayClick, sizeArray=3){
         
         if(toLeft && winLine.indexOf(i)===-1){
             winLine.push(i);
-            if(winLine.length === 3) colorSymbolsWin(symbol, winLine, direction = 'left');
+            if(winLine.length === 3) colorSymbolsWinDiag(symbol, winLine, direction = 'left');
         }
 
         if(toRight && winLine.indexOf(i)===-1){
             winLine.push(i);
-            if(winLine.length === 3) colorSymbolsWin(symbol, winLine, direction = 'right');
+            if(winLine.length === 3) colorSymbolsWinDiag(symbol, winLine, direction = 'right');
         }
     }
     if (toLeft || toRight) return true;
     return false;
 }
 
-function checkLanes(symbol, arrayClick, sizeArray=3){
+function checkLines(symbol, arrayClick, sizeArray=3){
     for(let i=0; i<sizeArray; i++){
         cols = true;
         rows = true;
         for(let j=0; j<sizeArray; j++){
             cols = cols && (arrayClick[i][j] === symbol);
             rows = rows && (arrayClick[j][i] === symbol);
-            if(cols && winLine.indexOf(i + ' ' + j) ===-1){
-                winLineCol.push(i + ' ' + j);
-                //console.log(winLineCol);
-                //colorSymbolsWin(symbol, winLine, direction = 'col');
-            }
-
-            if(rows && winLineRow.indexOf(j + ' ' + i) ===-1 && ){
-                winLineRow.push(j + ' ' + i);
-                console.log(winLineRow);
-                //colorSymbolsWin(symbol, winLine, direction = 'col');
-            }
         }
-        
         if(cols || rows) {return true}
     }
 
     return false;
 }
 
-function colorSymbolsWin(symbol, winLine, direction, sizeArray=3){
+//покрас победных значений в линиях в красный
+function colorSymbolsWinLines(symbol, arrayClick, sizeArray=3){
+    let testCol = [];
+    let testRow = [];
+
+    for(let s in arrayClick){
+        testCol.push(arrayClick[s].join(''))
+        let str =''
+        for(let j=0; j<sizeArray; j++){
+            str += arrayClick[j][s]
+        }
+        testRow.push(str)
+    }
+
+    if(testRow.indexOf(winSymbolCross) !== -1) {
+        for(let i=0; i<sizeArray; i++) renderSymbolInCell (symbol, testRow.indexOf(winSymbolCross), i, color = '#f00');
+    }
+    if(testRow.indexOf(winSymbolZero) !== -1) {
+        for(let i=0; i<sizeArray; i++) renderSymbolInCell (symbol, testRow.indexOf(winSymbolZero), i, color = '#f00');
+    }
+    if(testCol.indexOf(winSymbolCross) !== -1){
+        for(let i=0; i<sizeArray; i++) renderSymbolInCell (symbol, i, testCol.indexOf(winSymbolCross), color = '#f00');
+    }
+    if(testCol.indexOf(winSymbolZero) !== -1){
+        for(let i=0; i<sizeArray; i++) renderSymbolInCell (symbol, i, testCol.indexOf(winSymbolZero), color = '#f00');
+    }
+
+}
+//покрас победных значений в диагоналях в красный
+function colorSymbolsWinDiag(symbol, winLine, direction, sizeArray=3){
     for(let item in winLine){
-        if (direction === 'left') renderSymbolInCell (symbol, sizeArray-item-1, item, color = '#FF0000');
-        if (direction === 'right') renderSymbolInCell (symbol, item, item, color = '#FF0000');
-        if (direction === 'col') renderSymbolInCell (symbol, 0, item, color = '#FF0000');
-        if (direction === 'row') renderSymbolInCell (symbol, 3-item-1, item, color = '#FF0000');
+        if (direction === 'left') renderSymbolInCell (symbol, sizeArray-item-1, item, color = '#f00');
+        if (direction === 'right') renderSymbolInCell (symbol, item, item, color = '#f00');
     }
 }
 
@@ -186,6 +209,9 @@ function addResetListener () {
 
 function resetClickHandler () {
     console.log('reset!');
+    for(i=0;i<sizeArray;i++)
+        for(j=0;j<sizeArray;j++)
+            renderSymbolInCell(EMPTY, i, j);
 }
 
 
