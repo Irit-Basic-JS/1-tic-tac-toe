@@ -6,6 +6,11 @@ let countClick = 0;
 let isCross = true;  //для чередования
 let arrayClick = []
 createArray();
+let winLine = []
+let winLineCol = []
+let winLineRow = []
+
+
 
 
 const container = document.getElementById('fieldWrapper');
@@ -55,21 +60,18 @@ function cellClickHandler (row, col) {
 }
 
 
-function move(simbol, row, col){
+function move(symbol, row, col){
     if(arrayClick[col][row] === " "){
         if (isCross){
             renderSymbolInCell(CROSS, row, col);
             addSimbolInArray(CROSS, row, col);
             isCross=false;
-            //check
             checked(CROSS, arrayClick);
-
         }
         else{
             renderSymbolInCell(ZERO, row, col);
             addSimbolInArray(ZERO, row, col);
             isCross = true;
-            //check
             checked(ZERO, arrayClick)
         }
     }
@@ -87,46 +89,83 @@ function createArray(sizeArray = 3){
     }
 }
 
-function addSimbolInArray(simbol, row, col){
-    arrayClick[col][row] = simbol;
+function addSimbolInArray(symbol, row, col){
+    arrayClick[col][row] = symbol;
 }
 
-function checked(simbol, arrayClick, sizeArray=3){
+function checked(symbol, arrayClick, sizeArray=3){
     countClick++;
-    let diagonal = checkDiagonal(simbol, arrayClick, sizeArray=3);
-    let lines = checkLanes(simbol, arrayClick, sizeArray=3);
+    let diagonal = checkDiagonal(symbol, arrayClick, sizeArray=3);
+    let lines = checkLanes(symbol, arrayClick, sizeArray=3);
     
-    if (diagonal || lines) alert(`Winning for ${simbol}`);
+    if (diagonal || lines) alert(`Winning for ${symbol}`);
     if(countClick === sizeArray**2) alert('Победила дружба!');
 }
 
-function checkDiagonal(simbol, arrayClick, sizeArray=3){
+function checkDiagonal(symbol, arrayClick, sizeArray=3){
     let toRight = true;
     let toLeft = true;
     for(let i=0; i<sizeArray; i++){
-        toRight = toRight && (arrayClick[i][i] === simbol);
-        toLeft = toLeft && (arrayClick[i][i] === simbol);
-    }
+        toRight = toRight && (arrayClick[i][i] === symbol);
+        toLeft = toLeft && (arrayClick[sizeArray-i-1][i] === symbol);
+        
+        if(toLeft && winLine.indexOf(i)===-1){
+            winLine.push(i);
+            if(winLine.length === 3) colorSymbolsWin(symbol, winLine, direction = 'left');
+        }
 
+        if(toRight && winLine.indexOf(i)===-1){
+            winLine.push(i);
+            if(winLine.length === 3) colorSymbolsWin(symbol, winLine, direction = 'right');
+        }
+    }
     if (toLeft || toRight) return true;
     return false;
 }
 
-function checkLanes(simbol, arrayClick, sizeArray=3){
-    let cols = true;
-    let rows = true;
+function checkLanes(symbol, arrayClick, sizeArray=3){
     for(let i=0; i<sizeArray; i++){
         cols = true;
         rows = true;
         for(let j=0; j<sizeArray; j++){
-            cols = cols && (arrayClick[i][j] === simbol);
-            rows = rows && (arrayClick[j][i] === simbol);
+            cols = cols && (arrayClick[i][j] === symbol);
+            rows = rows && (arrayClick[j][i] === symbol);
+            if(cols && winLine.indexOf(i + ' ' + j) ===-1){
+                winLineCol.push(i + ' ' + j);
+                //console.log(winLineCol);
+                //colorSymbolsWin(symbol, winLine, direction = 'col');
+            }
+
+            if(rows && winLineRow.indexOf(j + ' ' + i) ===-1 && ){
+                winLineRow.push(j + ' ' + i);
+                console.log(winLineRow);
+                //colorSymbolsWin(symbol, winLine, direction = 'col');
+            }
         }
-        if(cols || rows) return true
+        
+        if(cols || rows) {return true}
     }
 
     return false;
 }
+
+function colorSymbolsWin(symbol, winLine, direction, sizeArray=3){
+    for(let item in winLine){
+        if (direction === 'left') renderSymbolInCell (symbol, sizeArray-item-1, item, color = '#FF0000');
+        if (direction === 'right') renderSymbolInCell (symbol, item, item, color = '#FF0000');
+        if (direction === 'col') renderSymbolInCell (symbol, 0, item, color = '#FF0000');
+        if (direction === 'row') renderSymbolInCell (symbol, 3-item-1, item, color = '#FF0000');
+    }
+}
+
+
+
+
+
+
+
+
+
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
     const targetCell = findCell(row, col);
