@@ -4,11 +4,20 @@ const EMPTY = ' ';
 
 const container = document.getElementById('fieldWrapper');
 
+let arrayOfCells=[];
+
+let isWinnerExists = false;
+let sym = EMPTY;
+let count = 0;
+
 startGame();
 addResetListener();
 
 function startGame () {
-    renderGrid(3);
+    let dimension = prompt("Размер поля: ", 3);
+    renderGrid(dimension);
+    count = dimension**2;
+    isWinnerExists = false;
 }
 
 
@@ -16,10 +25,12 @@ function renderGrid (dimension) {
     container.innerHTML = '';
 
     for (let i = 0; i < dimension; i++) {
+        arrayOfCells[i] = [];
         const row = document.createElement('tr');
         for (let j = 0; j < dimension; j++) {
             const cell = document.createElement('td');
             cell.textContent = EMPTY;
+            arrayOfCells[i][j] = EMPTY;
             cell.addEventListener('click', () => cellClickHandler(i, j));
             row.appendChild(cell);
         }
@@ -28,53 +39,93 @@ function renderGrid (dimension) {
 }
 
 
-let arrayOfCells=[
-    [EMPTY, EMPTY, EMPTY],
-    [EMPTY, EMPTY, EMPTY],
-    [EMPTY, EMPTY, EMPTY]
-];
-
-let winner = '';
-let ifCrossExists = false;
-let sym = EMPTY;
-let ifTurnsAreOver = false;
-
-
 function cellClickHandler (row, col) {
-    // Пиши код тут
-    console.log(`Clicked on cell: ${row}, ${col}`);
-    
-    if (ifCrossExists == true){
-        sym = ZERO;
-        ifCrossExists = false;
+    if (count % 2 === 0){
+        getCurrentSymbol(row, col, CROSS);
     }
     else {
-        sym = CROSS;
-        ifCrossExists = true;
+        getCurrentSymbol(row, col, ZERO);
     }
-    
-    if (arrayOfCells[row][col] == EMPTY) {
-        arrayOfCells[row][col] = sym;
+    console.log(`Clicked on cell: ${row}, ${col}`);
+}
+
+function getCurrentSymbol (row, col, sym) {
+    if (findCell(row, col).textContent === EMPTY && !isWinnerExists) {
         renderSymbolInCell(sym, row, col);
-    }
-
-    //если не было победителя
-    for(let i = 0; i < arrayOfCells.length; i++) {
-        for(let j = 0; j < arrayOfCells.length; j++) {
-            if (arrayOfCells[i][j] != EMPTY){
-                ifTurnsAreOver = true;
-            }
-            else {
-                ifTurnsAreOver = false;
-            }
+        arrayOfCells[row][col] = sym;
+        count--;
+        if (checkWin(row, col, sym)) {
+            alert(`Победитель: ${sym === ZERO ? "нолики" : "крестики"}`);
+            isWinnerExists = true;
         }
-    }
-
-    if (ifTurnsAreOver){
-        alert("Победила дружба");
+        if (count === 0 && !checkWin(row, col, sym))
+        alert("Ничья");
     }
 }
 
+function checkWin(row, col, sym) {
+    let f = true;
+    let winnersWay = '';
+    for(let i = 0; i < arrayOfCells.length; i++) {
+        if(arrayOfCells[row][i] !== sym) {
+                f = false;
+                break;
+        }
+        winnersWay = 'horizontal';
+    }
+
+    if(!f)
+        for (let i = 0; i < arrayOfCells.length; i++) {
+            if (arrayOfCells[i][col] !== sym) {
+                f = false;
+                break;
+            }
+            f = true;
+            winnersWay = 'vertical';
+        }
+    if(!f)
+        for (let i = 0; i < arrayOfCells.length; i++) {
+            if (arrayOfCells[i][i] !== sym) {
+                f = false;
+                break;
+            }
+            f = true;
+            winnersWay = 'diagToUp';
+        }
+    if (!f)
+        for (let i = 0; i < arrayOfCells.length; i++) {
+            if (arrayOfCells[i][arrayOfCells.length - 1 - i] !== sym) {
+                f = false;
+                break;
+            }
+            f = true;
+            winnersWay = 'diagToDown';
+        }
+    if (f)
+        changeColour(winnersWay, row, col);
+    return f;
+}
+
+function changeColour(way, row, col) {
+    switch(way) {
+        case 'horizontal':
+            for (let i = 0; i < arrayOfCells.length; i++)
+                findCell(row, i).style.color = "#ff2605";
+            break;
+        case 'vertical':
+            for (let i = 0; i < arrayOfCells.length; i++)
+                findCell(i, col).style.color = "#ff2605";
+            break;
+        case 'diagToUp':
+            for (let i = 0; i < arrayOfCells.length; i++)
+                findCell(i,i).style.color = "#ff2605";
+            break;
+        case 'diagToDown':
+            for (let i = 0; i < arrayOfCells.length; i++)
+                findCell(i, arrayOfCells.length - 1 - i).style.color = "#ff2605";
+            break;
+    }
+}
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
     const targetCell = findCell(row, col);
