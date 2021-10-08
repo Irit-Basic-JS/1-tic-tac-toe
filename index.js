@@ -37,15 +37,13 @@ function renderGrid (dimension) {
 }
 
 function cellClickHandler (row, col) {
-    // Пиши код тут
-    console.log(`Clicked on cell: ${row}, ${col}`);
-
     if (findCell(row,col).textContent === EMPTY && isPlayable)
         if(count % 2 === 0)
             processClick (ZERO, row, col)
         else
             processClick (CROSS, row, col)
-    console.log(`This cell is: ${fieldData[row][col]}`);
+
+    console.log(`Clicked on cell: ${row}, ${col}`);
 }
 
 function processClick (symbol, row, col) {
@@ -64,7 +62,7 @@ function checkWinner (symbol, row, col) {
     let isLined = true;
     let winType;
     {
-        for (let i = 0; i < fieldData.length; i++) {
+        for (let i = 0; i < dimension; i++) {
             if (fieldData[row][i] !== symbol) {
                 isLined = false;
                 break;
@@ -74,7 +72,7 @@ function checkWinner (symbol, row, col) {
         winType = "ver";
     }
     if (!isLined) {
-        for (let i = 0; i < fieldData.length; i++) {
+        for (let i = 0; i < dimension; i++) {
             if (fieldData[i][col] !== symbol) {
                 isLined = false;
                 break;
@@ -84,7 +82,7 @@ function checkWinner (symbol, row, col) {
         winType = "hor";
     }
     if (!isLined) {
-        for (let i = 0; i < fieldData.length; i++) {
+        for (let i = 0; i < dimension; i++) {
             if (fieldData[i][i] !== symbol) {
                 isLined = false;
                 break;
@@ -94,8 +92,8 @@ function checkWinner (symbol, row, col) {
         winType = "diagL";
     }
     if (!isLined) {
-        for (let i = 0; i < fieldData.length; i++) {
-            if (fieldData[i][fieldData.length - 1 - i] !== symbol) {
+        for (let i = 0; i < dimension; i++) {
+            if (fieldData[i][dimension - 1 - i] !== symbol) {
                 isLined = false;
                 break;
             }
@@ -111,29 +109,40 @@ function checkWinner (symbol, row, col) {
 
 function changeColor(way, row, col)
 {
-    for (let i = 0; i < fieldData.length; i++) {
+    for (let i = 0; i < dimension; i++) {
         switch (way) {
             case "hor":
-                findCell(i, col).style.color = '#ff4040';
+                changeCellColor(i, col)
                 break;
 
             case "ver":
-                findCell(row, i).style.color = '#ff4040';
+                changeCellColor(row, i)
                 break;
 
             case "diagL":
-                findCell(i, i).style.color = '#ff4040';
+                changeCellColor(i, i)
                 break;
 
             case "diagR":
-                findCell(i, fieldData.length - 1 - i).style.color = '#ff4040'
+                changeCellColor(i, dimension - 1 - i)
                 break;
         }
     }
 }
 
-function computerMove () {
+function changeCellColor(x, y)
+{
+    findCell(x, y).style.color = 'red'
+}
 
+
+function computerMove () {
+    let x = getRandomInt(), y = getRandomInt();
+    console.log(x, y);
+}
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {
