@@ -14,7 +14,6 @@ function getRandom(min, max) {
 }
 
 function startGame() {
-    //запрос на размер поля
     let dimension = prompt("Задайте размер поля:", '3');
     let botOn = confirm("Игра с ботом?")
     let smartBotOn = false;
@@ -23,7 +22,6 @@ function startGame() {
     }
     let growingFieldOn = confirm("Увеличивающееся поле?")
 
-    //создание поля
     let field = [];
     for (let i = 0; i < dimension; i++) {
         let row = [];
@@ -33,7 +31,6 @@ function startGame() {
         field.push(row);
     }
 
-    //создание объекта игры
     let game = {
         field,
         botOn,
@@ -55,7 +52,6 @@ function startGame() {
         }
     }
 
-    //рендер сетки
     renderGrid(dimension, game);
 }
 
@@ -94,20 +90,16 @@ function cellClickHandler(game, row, col) {
         game.tryMakeAMove(game.playersMove, row, col);
     }
 
-    //проверка на конец игры
     checkEndgame(game);
 
-    //увеличение поля в случае заполнения
     if (game.growingFieldOn && game.field.length ** 2 / 2 > game.moveCount) {
         increaseTheField(game);
     }
 }
 
 function checkEndgame(game) {
-    //анализ игрового поля
     let analysisResults = gameAnalysis(game.field);
 
-    //в случае конца игры - вывод результата
     if (analysisResults.zeroWin || analysisResults.crossWin || game.moveCount === 0) {
         if (game.moveCount > 0) paintWinValues(analysisResults, game.field.length);
         game.end = true;
@@ -120,10 +112,8 @@ function checkEndgame(game) {
 function stupidBotMove(game) {
     let dimension = game.field.length;
 
-    //номер случайной свободной клетки
     let randomEmpty = Math.round(Math.random() * (game.moveCount - 1))
 
-    //перебор свободных клеток и возврат позиции необходимой
     for (let row = 0; row < dimension; row++) {
         for (let col = 0; col < dimension; col++) {
             if (game.field[row][col] === EMPTY) {
@@ -198,7 +188,6 @@ function smartBotMove(game) {
 function increaseTheField(game) {
     let dimension = game.field.length;
 
-    //увеличение двумерного массива внутри объекта game
     for (let row of game.field) {
         row.push(0);
     }
@@ -208,11 +197,9 @@ function increaseTheField(game) {
     }
     game.field.push(newRow);
 
-    //нахождение количества оставшихся ходов
     let spentMoves = dimension ** 2 - game.moveCount;
     game.moveCount = (dimension + 1) ** 2 - spentMoves;
 
-    //перерисовка и заполнение поля
     renderGrid(game.field.length, game)
     for (let i = 0; i < game.field.length; i++) {
         for (let j = 0; j < game.field.length; j++) {
@@ -224,13 +211,11 @@ function increaseTheField(game) {
 }
 
 function paintWinValues(analysis, dimension) {
-    //находим способ перебора клеток исходя из данных анализа
     let findWinCell = analysis.winRow != null ? i => findCell(analysis.winRow, i) :
         analysis.winColumn != null ? i => findCell(i, analysis.winColumn) :
             analysis.winDiag === 0 ? i => findCell(i, i) :
                 i => findCell(i, dimension - 1 - i);
 
-    //перебираем и красим в красный
     for (let i = 0; i < dimension; i++) {
         findWinCell(i).style.backgroundColor = "red";
     }
@@ -239,7 +224,6 @@ function paintWinValues(analysis, dimension) {
 function gameAnalysis(field) {
     let dimension = field.length;
 
-    //создаем объект для хранения результатов анализа
     let analysisResults = {
         crossWin: false,
         zeroWin: false,
@@ -248,21 +232,13 @@ function gameAnalysis(field) {
         winDiag: null
     }
 
-    //цикл, бегущий по строкам (столбцам)
     for (let i = 0; i < dimension; i++) {
-
-        //переменные для хранения информации, победил ли игрок в этой строке (столбце)
-        //изначально считаем, что - да
         let crossRowWin = true;
         let crossColWin = true;
         let zeroRowWin = true;
         let zeroColWin = true;
 
-        //цикл, бегущий по элементам строки (столбца)
         for (let j = 0; j < dimension; j++) {
-
-            //если в элементе обнаруживается знак противника (или отсутствие знаков), то считается,
-            //что игрок не победил в этой строке (столбце)
             if (crossRowWin && field[i][j] !== ZERO) {
                 crossRowWin = false;
             }
@@ -276,14 +252,11 @@ function gameAnalysis(field) {
                 zeroColWin = false;
             }
 
-            //если ни один игрок не побеждает ни в одной из строк (столбцов),
-            // внешний цикл переходит к следующей строке (столбцу)
             if (!crossRowWin && !crossColWin && !zeroRowWin && !zeroColWin) {
                 break;
             }
         }
 
-        //в случае нахождения победителя, цикл прерывается, победитель записывается в результаты
         analysisResults.zeroWin = zeroRowWin || zeroColWin;
         analysisResults.crossWin = crossRowWin || crossColWin;
         if (analysisResults.zeroWin || analysisResults.crossWin) {
@@ -293,16 +266,12 @@ function gameAnalysis(field) {
         }
     }
 
-    //если победитель не был найден ранее, поиск ведется по диагоналям
     if (!(analysisResults.zeroWin || analysisResults.crossWin)) {
-
-        //переменные для хранения информации о победе в главной и побочной диагонали
         let crossMainDiagWin = true;
         let crossSideDiagWin = true;
         let zeroMainDiagWin = true;
         let zeroSideDiagWin = true;
 
-        //цикл, бегущий по диагоналям
         for (let i = 0; i < dimension; i++) {
             if (crossMainDiagWin && field[i][i] !== ZERO) {
                 crossMainDiagWin = false;
@@ -321,7 +290,6 @@ function gameAnalysis(field) {
             }
         }
 
-        //результаты прохода записываются в созданный ранее объект
         analysisResults.crossWin = crossMainDiagWin || crossSideDiagWin;
         analysisResults.zeroWin = zeroMainDiagWin || zeroSideDiagWin;
         analysisResults.winDiag = crossMainDiagWin || zeroMainDiagWin ? 0 : crossSideDiagWin || zeroSideDiagWin ? 1 : null;
