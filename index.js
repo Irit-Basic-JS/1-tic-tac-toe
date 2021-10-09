@@ -38,7 +38,6 @@ const createDownUpDiagonalSelector = dimension => {
     return (index, i) => downUpDiagonalSelector(index, i, dimension);
 };
 
-
 class Controller {
     useBotInput = document.getElementById('useBot');
     dimensionInput = document.getElementById('dimension');
@@ -52,7 +51,7 @@ class Controller {
     }
 
     getDimension() {
-        return this.dimensionInput.value;
+        return Number(this.dimensionInput.value);
     }
 
     setDimension(value) {
@@ -72,11 +71,51 @@ class Controller {
     }
 }
 
+class Line {
+    crosses = 0;
+    zeros = 0;
+
+    index;
+    selector;
+
+    constructor(index, selector) {
+        this.index = index;
+        this.selector = selector;
+    }
+
+    addTurn(turn) {
+        if (turn === CROSS)
+            this.crosses++;
+        else
+            this.zeros++;
+    }
+
+    isWinner(turn, score) {
+        if (turn === CROSS)
+            return this.crosses === score;
+        else
+            return this.zeros === score;
+    }
+
+    getScore(turn) {
+        return turn === CROSS ? this.crosses : this.zeros;
+    }
+}
+
+function values(dict) {
+    return Object.keys(dict).map(key => dict[key]);
+}
+
 class Game {
     MAX_DIMENSION = 100;
 
     grid = [];
     freeCells = new Map();
+    rows;
+    cols;
+    upDownDiag;
+    downUpDiag;
+
     isGameEnd = false;
     dimension = 3;
     turn = CROSS;
@@ -87,16 +126,9 @@ class Game {
     constructor(controller, view) {
         this.controller = controller;
         this.view = view;
+
         controller.onCellClick = (i, j) => this.handleCellClick(i, j);
         controller.onReset = () => this.startGame();
-        const wc = new WinnerChecker(this);
-        wc.methods = [
-            (x, y) => [y, columnSelector],
-            (x) => [x, rowSelector],
-            () => [0, upDownDiagonalSelector],
-            () => [0, createDownUpDiagonalSelector(this.dimension)]
-        ];
-        this.winnerChecker = wc;
     }
 
     startGame() {
@@ -118,6 +150,10 @@ class Game {
     initializeGrid() {
         this.freeCells.clear();
         this.fillFreeCells();
+        this.downUpDiag = new Line(0, createDownUpDiagonalSelector(this.dimension));
+        this.upDownDiag = new Line(0, upDownDiagonalSelector);
+        this.rows = {};
+        this.cols = {};
     }
 
     fillFreeCells() {
@@ -152,14 +188,43 @@ class Game {
 
     setTurn(row, col) {
         this.grid[row][col] = this.turn;
-        this.freeCells.delete(new Point(row, col).hashCode());
+        this.addTurn(row, col);
         view.renderSymbolInCell(this.turn, row, col);
     }
 
+    addTurn(row, col) {
+        this.addTurnToLine(this.rows, row, rowSelector);
+        this.addTurnToLine(this.cols, col, columnSelector);
+        if (row === col)
+            this.upDownDiag.addTurn(this.turn);
+        if (row === this.dimension - col - 1)
+            this.downUpDiag.addTurn(this.turn);
+        this.freeCells.delete(new Point(row, col).hashCode());
+    }
+
+    addTurnToLine(line, index, selector) {
+        if (line[index] === undefined)
+            line[index] = new Line(index, selector);
+        line[index].addTurn(this.turn);
+    }
+
     checkWinner(row, col) {
-        const winner = this.winnerChecker.check(row, col);
+        const winner = this.isWinner(row, col);
         if (winner)
             this.announceWinner(...winner);
+    }
+
+    isWinner(row, col) {
+        const lines = [this.rows[row], this.cols[col], this.upDownDiag, this.downUpDiag];
+        for (const line of lines)
+            if (line.isWinner(this.turn, this.dimension))
+                return [line.index, line.selector];
+    }
+
+    announceWinner(index, selector) {
+        this.view.paintLine(index, selector, this.turn);
+        this.isGameEnd = true;
+        this.view.alert(`Победил ${this.turn}`);
     }
 
     checkDraw() {
@@ -177,50 +242,53 @@ class Game {
     }
 
     makeBotTurn() {
-        const turnKeys = Array.from(this.freeCells.keys());
-        if (turnKeys.length === 0)
-            return;
-        const turnKey = turnKeys[getRandomInt(turnKeys.length)];
-        const turn = this.freeCells.get(turnKey);
-        this.makeTurn(turn.x, turn.y);
-    }
+        const lineToTurn = this.getLineToMakeTurn();
 
-    announceWinner(index, selector) {
-        this.view.paintLine(index, selector, this.turn);
-        this.isGameEnd = true;
-        this.view.alert(`Победил ${this.turn}`);
-    }
-}
-
-class WinnerChecker {
-    game;
-    methods = [];
-
-    constructor(game) {
-        this.game = game;
-    }
-
-    isLineWon(index, selector) {
-        let firstTurn;
-        for (let i = 0; i < this.game.dimension; i++) {
-            const [row, col] = selector(index, i);
-            let cell = this.game.grid[row][col];
-            if (cell === EMPTY)
-                return false;
-            if (firstTurn === undefined)
-                firstTurn = cell;
-            if (firstTurn !== cell)
-                return false;
+        for (let i = 0; i < this.dimension; i++) {
+            const [row, col] = lineToTurn.selector(lineToTurn.index, i);
+            if (this.freeCells.has(new Point(row, col).hashCode())) {
+                this.makeTurn(row, col);
+                return;
+            }
         }
-        return true;
     }
 
-    check(x, y) {
-        for (let method of this.methods) {
-            let [index, selector] = method(x, y);
-            if (this.isLineWon(index, selector))
-                return [index, selector];
+    getLineToMakeTurn() {
+        const rows = values(this.rows);
+        const cols = values(this.cols);
+        const lines = [...rows, ...cols, this.upDownDiag, this.downUpDiag];
+        const enemy = this.turn === CROSS ? ZERO : CROSS;
+        const lineWithMaxEnemyScore = this.getPossibleToWinLine(lines, enemy, this.turn);
+        const bestBotLine = this.getPossibleToWinLine(lines, this.turn, enemy);
+
+        if (!bestBotLine && !lineWithMaxEnemyScore)
+            return this.getRandomLine(lines);
+
+        if (!bestBotLine)
+            return lineWithMaxEnemyScore;
+
+        return bestBotLine.getScore(this.turn) >= lineWithMaxEnemyScore.getScore(enemy)
+            ? bestBotLine
+            : lineWithMaxEnemyScore;
+    }
+
+    getPossibleToWinLine(lines, me, enemy) {
+        const sorted = this.sortByScore(lines, me);
+        for (const line of sorted) {
+            if (line.getScore(enemy) !== 0)
+                continue;
+            return line;
         }
+    }
+
+    sortByScore(lines, player) {
+        return lines.sort((a, b) => a.getScore(player) > b.getScore(player) ? -1 : 1);
+    }
+
+    getRandomLine(lines) {
+        for (const line of lines)
+            if (line.crosses + line.zeros !== this.dimension)
+                return line;
     }
 }
 
@@ -271,13 +339,6 @@ class View {
         alert(msg);
     }
 }
-
-
-function getRandomInt(max) {
-    return Math.floor(Math.random() * max);
-}
-
-
 
 const controller = new Controller();
 const view = new View(controller);
