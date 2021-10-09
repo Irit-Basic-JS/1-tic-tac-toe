@@ -1,21 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>Крестики-нолики</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <div class="container">
-        <table class="table">
-            <tbody id="fieldWrapper">
+<body class="dark">
 
-            </tbody>
-        </table>
+<div class="container">
+    <table class="table">
+        <tbody id="fieldWrapper">
+
+        </tbody>
+    </table>
+</div>
+<div>
+    <button class="resetButton text-white" id="reset">Сначала</button>
+    <div class="controls">
+        <div class="flex-center">
+            <input id="useBot" type="checkbox"/>
+            <label for="useBot" class="text-white">Включить бота</label>
+        </div>
+        <div class="flex-center">
+            <label for="dimension" class="text-white">Размер поля:</label>
+            <input id="dimension" type="number" value="3" max="100" style="max-width: 2.5rem">
+        </div>
     </div>
-    <div>
-        <button class="resetButton" id="reset">Сначала</button>
-    </div>
-    <script src="index.js"></script>
+</div>
+<script src="index.js"></script>
 </body>
 </html>
