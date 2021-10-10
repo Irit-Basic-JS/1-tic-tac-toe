@@ -8,16 +8,19 @@ let arrayOfCells=[];
 
 let isWinnerExists = false;
 let sym = EMPTY;
-let count = 0;
+let turns = 0;
+let gameIsGoing = false;
+let dimension = 0;
 
 startGame();
 addResetListener();
 
 function startGame () {
-    let dimension = prompt("Размер поля: ", 3);
+    dimension = prompt("Размер поля: ", 3);
     renderGrid(dimension);
-    count = dimension**2;
+    gameIsGoing = true;
     isWinnerExists = false;
+    turns = 0;
 }
 
 
@@ -40,30 +43,38 @@ function renderGrid (dimension) {
 
 
 function cellClickHandler (row, col) {
-    if (count % 2 === 0){
+    if (!gameIsGoing){
+        return;
+    }
+    let cell = findCell(row, col);
+    if (cell.textContent === EMPTY){
         getCurrentSymbol(row, col, CROSS);
+        turns++;
+        console.log(`Clicked on cell: ${row}, ${col}`);
     }
-    else {
-        getCurrentSymbol(row, col, ZERO);
+    if (gameIsGoing){
+        aiTurn();
+        turns++;
     }
-    console.log(`Clicked on cell: ${row}, ${col}`);
+    else{
+        console.log(`Clicked on occupied cell: ${row}, ${col}`);
+    }
 }
 
 function getCurrentSymbol (row, col, sym) {
     if (findCell(row, col).textContent === EMPTY && !isWinnerExists) {
         renderSymbolInCell(sym, row, col);
         arrayOfCells[row][col] = sym;
-        count--;
         if (checkWin(row, col, sym)) {
             alert(`Победитель: ${sym === ZERO ? "нолики" : "крестики"}`);
             isWinnerExists = true;
         }
-        if (count === 0 && !checkWin(row, col, sym))
+        if (turns === dimension**2 && !checkWin(row, col, sym))
         alert("Ничья");
     }
 }
 
-function checkWin(row, col, sym) {
+function checkWin(row, col, sym) { //возвращает, есть ли победитель
     let f = true;
     let winnersWay = '';
     for(let i = 0; i < arrayOfCells.length; i++) {
@@ -147,9 +158,21 @@ function addResetListener () {
 function resetClickHandler () {
     console.log('reset!');
     ifTurnsAreOver = false;
+    gameIsGoing = false;
     startGame();
 }
 
+function aiTurn () { //пункт 10
+    while(gameIsGoing) {
+        let randRow = Math.floor(Math.random()*dimension) % dimension;
+        let randCol = Math.floor(Math.random()*dimension) % dimension;
+        let randCell = findCell(randRow, randCol);
+        if (randCell.textContent === EMPTY){
+            getCurrentSymbol(randRow, randCol, ZERO);
+            break;
+        }
+    }
+}
 
 /* Test Function */
 /* Победа первого игрока */
