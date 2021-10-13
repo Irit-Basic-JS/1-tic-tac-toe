@@ -77,11 +77,11 @@ function applyWinMessage(sum, firstPoint, secondPoint, isDiagonal = false) {
     if (Math.abs(sum) == fieldSize) {
         if (sum > 0) {
             makeWinnerRed('X', firstPoint, secondPoint, isDiagonal);
-            alert(`Победили Крестики! \nXXXXXXXXXXXXXXXX`);
+            alert(`Победили Крестики!`);
         }
         else {
             makeWinnerRed('O', firstPoint, secondPoint, isDiagonal);
-            alert(`Победили Нолики!   \n0000000000000000`);
+            alert(`Победили Нолики!`);
         }
 
         return true;
