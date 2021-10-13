@@ -8,7 +8,8 @@ let cellsRemaining = 9;
 let gameIsOver = false;
 startGame();
 addResetListener();
-function startGame() {
+function startGame() 
+{
     let size = Number(prompt("Введите размер поля", 3));
     cellsRemaining = size ** 2;
     gameIsOver = false;
@@ -16,7 +17,8 @@ function startGame() {
     createField(size);
     fieldSize = field[0].length;
 }
-function renderGrid(dimension) {
+function renderGrid(dimension) 
+{
     container.innerHTML = '';
     for (let i = 0; i < dimension; i++) {
         const row = document.createElement('tr');
@@ -29,18 +31,22 @@ function renderGrid(dimension) {
         container.appendChild(row);
     }
 }
-function createField(dimension) {
+function createField(dimension) 
+{
     field = Array.from(Array(dimension), () => new Array(dimension));
     for (let i = 0; i < dimension; i++)
         for (let j = 0; j < dimension; j++)
             field[i][j] = 0;
 }
-function checkWinConditions() {
+function checkWinConditions() 
+{
     let rowsSum = new Array(fieldSize).fill(0);
     let diagonalsSum = new Array(2).fill(0);
-    for (let i = 0; i < fieldSize; i++) {
+    for (let i = 0; i < fieldSize; i++) 
+    {
         let lineSum = 0;
-        for (let j = 0; j < fieldSize; j++) {
+        for (let j = 0; j < fieldSize; j++) 
+        {
             lineSum += field[i][j];
             rowsSum[j] += field[i][j];
 
@@ -56,12 +62,14 @@ function checkWinConditions() {
         if (gameIsOver) break;
     }
     if (gameIsOver) return;
-    for (let i = 0; i < fieldSize; i++) {
+    for (let i = 0; i < fieldSize; i++) 
+    {
         gameIsOver = applyWinMessage(rowsSum[i], [0, i], [fieldSize - 1, i]);
         if (gameIsOver) break;
     }
     if (gameIsOver) return;
-    for (let i = 0; i < fieldSize; i++) {
+    for (let i = 0; i < fieldSize; i++)
+    {
         gameIsOver = applyWinMessage(diagonalsSum[i],
             [0, i === 0 ? 0 : fieldSize - 1], [fieldSize - 1, i === 1 ? 0 : fieldSize - 1], true);
         if (gameIsOver) break;
@@ -73,13 +81,17 @@ function checkWinConditions() {
     }
 }
 
-function applyWinMessage(sum, firstPoint, secondPoint, isDiagonal = false) {
-    if (Math.abs(sum) == fieldSize) {
-        if (sum > 0) {
+function applyWinMessage(sum, firstPoint, secondPoint, isDiagonal = false) 
+{
+    if (Math.abs(sum) == fieldSize) 
+    {
+        if (sum > 0) 
+        {
             makeWinnerRed('X', firstPoint, secondPoint, isDiagonal);
             alert(`Победили Крестики!`);
         }
-        else {
+        else 
+        {
             makeWinnerRed('O', firstPoint, secondPoint, isDiagonal);
             alert(`Победили Нолики!`);
         }
@@ -90,8 +102,10 @@ function applyWinMessage(sum, firstPoint, secondPoint, isDiagonal = false) {
     return false;
 }
 
-function makeWinnerRed(symbol, firstPoint, secondPoint, isDiagonal = false) {
-    if (!isDiagonal) {
+function makeWinnerRed(symbol, firstPoint, secondPoint, isDiagonal = false) 
+{
+    if (!isDiagonal) 
+    {
         for (let i = firstPoint[0]; i <= secondPoint[0]; i++)
             for (let j = firstPoint[1]; j <= secondPoint[1]; j++)
                 renderSymbolInCell(symbol, i, j, "red");
@@ -102,9 +116,12 @@ function makeWinnerRed(symbol, firstPoint, secondPoint, isDiagonal = false) {
 
 }
 
-function cellClickHandler(row, col) {
-    if (!gameIsOver) {
-        if (field[row][col] === 0) {
+function cellClickHandler(row, col) 
+{
+    if (!gameIsOver) 
+    {
+        if (field[row][col] === 0) 
+        {
             renderSymbolInCell(CROSS, row, col);
             field[row][col] = 1;
             cellsRemaining--;
@@ -113,7 +130,8 @@ function cellClickHandler(row, col) {
 
             checkWinConditions();
 
-            if (!gameIsOver) {
+            if (!gameIsOver) 
+            {
                 makeBotMove();
                 checkWinConditions();
             }
@@ -121,11 +139,13 @@ function cellClickHandler(row, col) {
     }
 }
 
-function makeBotMove() {
+function makeBotMove() 
+{
     let row = Math.floor(Math.random() * fieldSize);
     let col = Math.floor(Math.random() * fieldSize);
 
-    while (field[row][col] != 0) {
+    while (field[row][col] != 0) 
+    {
         row = Math.floor(Math.random() * fieldSize);
         col = Math.floor(Math.random() * fieldSize);
     }
@@ -136,26 +156,31 @@ function makeBotMove() {
     console.log(`Bot made move on cell: ${row}, ${col}`);
 }
 
-function renderSymbolInCell(symbol, row, col, color = '#333') {
+function renderSymbolInCell(symbol, row, col, color = '#333') 
+{
     const targetCell = findCell(row, col);
     targetCell.textContent = symbol;
     targetCell.style.color = color;
 }
-function findCell(row, col) {
+function findCell(row, col) 
+{
     const targetRow = container.querySelectorAll('tr')[row];
     return targetRow.querySelectorAll('td')[col];
 }
-function addResetListener() {
+function addResetListener() 
+{
     const resetButton = document.getElementById('reset');
     resetButton.addEventListener('click', resetClickHandler);
 }
-function resetClickHandler() {
+function resetClickHandler() 
+{
     startGame();
     console.log('reset!');
 }
 /* Test Function */
 /* Победа первого игрока */
-function testWin() {
+function testWin() 
+{
     clickOnCell(0, 2);
     clickOnCell(0, 0);
     clickOnCell(2, 0);
@@ -165,7 +190,8 @@ function testWin() {
     clickOnCell(2, 1);
 }
 /* Ничья */
-function testDraw() {
+function testDraw() 
+{
     clickOnCell(2, 0);
     clickOnCell(1, 0);
     clickOnCell(1, 1);
@@ -177,6 +203,7 @@ function testDraw() {
     clickOnCell(2, 1);
     clickOnCell(2, 2);
 }
-function clickOnCell(row, col) {
+function clickOnCell(row, col) 
+{
     findCell(row, col).click();
 }
