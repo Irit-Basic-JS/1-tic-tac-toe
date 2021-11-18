@@ -82,7 +82,7 @@ function cellClickHandler(row, col) {
 
             //comment this to disable field enlargement
             if (cellsRemaining < fieldSize ** 2 / 2)
-                createLargerField();
+                createLargerField();    
             //end of comment
 
             console.log(`Clicked on cell: ${row}, ${col}`);
